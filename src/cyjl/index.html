@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星空成语接龙游戏</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite ease-in-out;
+            opacity: var(--opacity);
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            z-index: 0;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: calc(var(--opacity) * 0.5);
+                box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            }
+            50% {
+                opacity: var(--opacity);
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+            }
+        }
+        
+        .game-container {
+            background: rgba(30, 27, 75, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .title {
+            font-family: 'Ma Shan Zheng', cursive;
+            background: linear-gradient(45deg, #4F46E5, #EC4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 15px rgba(79, 70, 229, 0.5);
+            letter-spacing: 2px;
+            position: relative;
+        }
+        
+        .title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #8B5CF6, transparent);
+            border-radius: 2px;
+        }
+        
+        .difficulty-btn {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .difficulty-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .difficulty-btn:hover::after {
+            left: 100%;
+        }
+        
+        .char-bubble {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(145deg, #6d28d9, #8b5cf6);
+            color: white;
+            user-select: none;
+            animation: float 4s ease-in-out infinite;
+            margin: 8px;
+        }
+        
+        .char-bubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .char-bubble.used {
+            opacity: 0.3;
+            transform: scale(0.9);
+            cursor: not-allowed;
+        }
+        
+        .slot-bubble {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            font-size: 2rem;
+            font-weight: bold;
+            background: rgba(30, 41, 59, 0.7);
+            border: 2px dashed #4b5563;
+            transition: all 0.3s ease;
+        }
+        
+        .slot-bubble.filled {
+            background: linear-gradient(145deg, #4f46e5, #7c3aed);
+            border: 2px solid #8b5cf6;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+        }
+        
+        .control-btn {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(145deg, #6d28d9, #8b5cf6);
+            border: none;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-content {
+            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid #6d28d9;
+        }
+        
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .meaning-box {
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(139, 92, 246, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+            }
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+        
+        .bubble-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 15px;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 20px;
+            margin: 20px 0;
+        }
+        
+        .character-bubble {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 8px;
+            background: linear-gradient(145deg, #7e22ce, #a855f7);
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            animation: float 5s ease-in-out infinite;
+            animation-delay: calc(0.1s * var(--i));
+        }
+        
+        .character-bubble:hover {
+            transform: scale(1.15);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+        }
+        
+        .slot-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .score-bubble {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #0ea5e9, #38bdf8);
+            color: white;
+            font-size: 1.8rem;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .time-bubble {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #f59e0b, #fbbf24);
+            color: white;
+            font-size: 1.8rem;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="relative min-h-screen flex flex-col items-center justify-center p-4">
+    <!-- 星空背景 -->
+    <div id="stars-container" class="fixed inset-0 z-0"></div>
+    
+    <!-- 主游戏容器 -->
+    <div class="relative z-10 w-full max-w-4xl">
+        <div class="text-center mb-8">
+            <h1 class="title text-5xl md:text-6xl font-bold mb-4">星空成语接龙</h1>
+            <p class="text-lg text-gray-300 max-w-2xl mx-auto">点击泡泡，拼接正确的四字成语。挑战你的成语知识储备吧！</p>
+        </div>
+        
+        <!-- 难度选择 -->
+        <div id="difficulty-selection" class="game-container p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-200">选择游戏难度</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <button id="easy" class="difficulty-btn py-4 px-6 rounded-xl text-white bg-gradient-to-br from-green-500 to-emerald-600">
+                    <i class="fa fa-smile-o mr-2"></i>简单模式
+                    <p class="text-sm mt-1 opacity-80">适合初学者</p>
+                </button>
+                <button id="medium" class="difficulty-btn py-4 px-6 rounded-xl text-white bg-gradient-to-br from-amber-500 to-orange-600">
+                    <i class="fa fa-meh-o mr-2"></i>中等模式
+                    <p class="text-sm mt-1 opacity-80">有一定挑战</p>
+                </button>
+                <button id="hard" class="difficulty-btn py-4 px-6 rounded-xl text-white bg-gradient-to-br from-rose-500 to-red-600">
+                    <i class="fa fa-frown-o mr-2"></i>困难模式
+                    <p class="text-sm mt-1 opacity-80">成语高手必备</p>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 游戏主界面 -->
+        <div id="game-container" class="game-container p-6 md:p-8 hidden">
+            <!-- 游戏状态栏 -->
+            <div class="flex flex-wrap justify-center gap-8 mb-8">
+                <div class="flex items-center">
+                    <div class="score-bubble mr-3">
+                        <i class="fa fa-trophy"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-300">得分</p>
+                        <p id="score" class="text-2xl font-bold text-yellow-400">0</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <div class="time-bubble mr-3">
+                        <i class="fa fa-clock-o"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-300">时间</p>
+                        <p id="timer" class="text-2xl font-bold text-blue-400">60</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 成语解释区域 -->
+            <div class="meaning-box p-5 mb-8">
+                <div class="text-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-300 mb-1">上一个成语</h3>
+                    <div id="last-idiom" class="text-2xl md:text-3xl font-bold text-white mb-3">画蛇添足</div>
+                </div>
+                
+                <div class="text-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-300 mb-2">成语解释</h3>
+                    <div id="last-idiom-meaning" class="text-lg text-gray-200 italic">比喻做了多余的事，非但无益，反而不合适。</div>
+                </div>
+                
+                <div class="text-center mt-6">
+                    <h3 class="text-xl font-bold text-gray-300 mb-2">接龙起始字</h3>
+                    <div id="current-character" class="text-4xl font-bold text-yellow-300 inline-block w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center glow-text floating">
+                        足
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 成语拼接区域 -->
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-center mb-6">请拼接成语</h3>
+                
+                <!-- 成语目标区域 -->
+                <div class="slot-container">
+                    <div class="slot-bubble" data-index="0"></div>
+                    <div class="slot-bubble" data-index="1"></div>
+                    <div class="slot-bubble" data-index="2"></div>
+                    <div class="slot-bubble" data-index="3"></div>
+                </div>
+                
+                <!-- 字符源区域 -->
+                <div class="bubble-container" id="char-source">
+                    <!-- 字符将动态生成 -->
+                </div>
+            </div>
+            
+            <!-- 控制按钮 -->
+            <div class="flex flex-wrap justify-center gap-4">
+                <button id="shuffle-btn" class="control-btn py-3 px-6 rounded-xl">
+                    <i class="fa fa-random mr-2"></i>重新打乱
+                </button>
+                <button id="submit-btn" class="control-btn py-3 px-6 rounded-xl" disabled>
+                    <i class="fa fa-check mr-2"></i>提交答案
+                </button>
+                <button id="hint-btn" class="control-btn py-3 px-6 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-600">
+                    <i class="fa fa-lightbulb-o mr-2"></i>获取提示
+                </button>
+            </div>
+            
+            <!-- 反馈信息 -->
+            <div id="feedback" class="mt-6 h-12 flex items-center justify-center text-lg font-bold">
+                <!-- 反馈信息将在这里显示 -->
+            </div>
+        </div>
+        
+        <!-- 游戏结束弹窗 -->
+        <div id="game-over-modal" class="fixed inset-0 flex items-center justify-center bg-black/80 z-20 opacity-0 pointer-events-none transition-opacity duration-300 p-4">
+            <div class="modal-content rounded-2xl p-8 max-w-md w-full">
+                <div class="text-center mb-6">
+                    <h2 class="text-3xl font-bold text-white mb-2">游戏结束</h2>
+                    <p class="text-gray-300">你的最终得分</p>
+                    <p id="final-score" class="text-5xl font-bold text-yellow-400 my-4">0</p>
+                    <div class="flex justify-center my-4">
+                        <div class="w-32 h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <button id="play-again-btn" class="control-btn py-3 px-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600">
+                        再玩一次
+                    </button>
+                    <button id="change-difficulty-btn" class="control-btn py-3 px-4 rounded-xl bg-gradient-to-r from-gray-600 to-gray-700">
+                        更换难度
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 底部信息 -->
+    <div class="relative z-10 text-center text-gray-500 mt-8 text-sm">
+        <p>泡泡成语接龙游戏 | 将收录 3000+ 成语</p>
+         <a href="https://docs.qq.com/doc/DVG5nb0dUQWpZcGR3" class="hover:text-indigo-400 transition-colors">更新界面</a>
+    </div>
+
+    <script>
+        // 成语数据（模拟从本地TXT文件加载）
+        const idiomsData = {
+            '简单': [
+                { word: "足智多谋", explanation: "富有智慧，善于谋划。形容人善于料事和用计。", firstChar: "足", lastChar: "谋" },
+                { word: "足不出户", explanation: "脚不跨出家门。", firstChar: "足", lastChar: "户" },
+                { word: "足食足兵", explanation: "粮食充足，武备修整。", firstChar: "足", lastChar: "兵" },
+                { word: "画蛇添足", explanation: "画蛇时给蛇添上脚。比喻做了多余的事，非但无益，反而不合适。", firstChar: "画", lastChar: "足" },
+                { word: "狐假虎威", explanation: "狐狸假借老虎的威势。比喻依仗别人的势力欺压人。", firstChar: "狐", lastChar: "威" },
+                { word: "井底之蛙", explanation: "井底的蛙只能看到井口那么大的一块天。比喻见识狭窄的人。", firstChar: "井", lastChar: "蛙" },
+                { word: "守株待兔", explanation: "原比喻希图不经过努力而得到成功的侥幸心理。现也比喻死守狭隘经验，不知变通。", firstChar: "守", lastChar: "兔" },
+                { word: "叶公好龙", explanation: "比喻口头上说爱好某事物，实际上并不真爱好。", firstChar: "叶", lastChar: "龙" },
+                { word: "一鸣惊人", explanation: "平时没有突出的表现，一下子做出惊人的成绩。", firstChar: "一", lastChar: "人" },
+                { word: "画龙点睛", explanation: "比喻说话或写作时在关键地方简明地点明要旨，使内容生动传神。", firstChar: "画", lastChar: "睛" },
+                { word: "望梅止渴", explanation: "比喻用空想安慰自己。", firstChar: "望", lastChar: "渴" },
+                { word: "破釜沉舟", explanation: "比喻下决心不顾一切地干到底。", firstChar: "破", lastChar: "舟" },
+                { word: "胸有成竹", explanation: "原指画竹子要在心里有一幅竹子的形象。后比喻在做事之前已经拿定主意。", firstChar: "胸", lastChar: "竹" },
+                { word: "掩耳盗铃", explanation: "偷铃铛怕别人听见而捂住自己的耳朵。比喻自己欺骗自己，明明掩盖不住的事情偏要想法子掩盖。", firstChar: "掩", lastChar: "铃" },
+                { word: "亡羊补牢", explanation: "羊丢失了再去修补羊圈，还不算晚。比喻出了问题以后想办法补救，可以防止继续受损失。", firstChar: "亡", lastChar: "牢" }
+            ],
+            '中等': [
+                { word: "足高气扬", explanation: "犹言趾高气扬。形容骄傲自满，得意忘形的样子。", firstChar: "足", lastChar: "扬" },
+                { word: "足不逾户", explanation: "不出大门一步。指闭门自守。", firstChar: "足", lastChar: "户" },
+                { word: "足食丰衣", explanation: "丰衣足食。形容生活富裕。", firstChar: "足", lastChar: "衣" },
+                { word: "画龙点睛", explanation: "原形容梁代画家张僧繇作画的神妙。后多比喻写文章或讲话时，在关键处用几句话点明实质，使内容生动有力。", firstChar: "画", lastChar: "睛" },
+                { word: "狐朋狗友", explanation: "泛指一些吃喝玩乐、不务正业的朋友。", firstChar: "狐", lastChar: "友" },
+                { word: "锦上添花", explanation: "在锦上再绣花。比喻好上加好，美上添美。", firstChar: "锦", lastChar: "花" },
+                { word: "雪中送炭", explanation: "在下雪天给人送炭取暖。比喻在别人急需时给以物质上或精神上的帮助。", firstChar: "雪", lastChar: "炭" },
+                { word: "愚公移山", explanation: "比喻坚持不懈地改造自然和坚定不移地进行斗争。", firstChar: "愚", lastChar: "山" },
+                { word: "卧薪尝胆", explanation: "睡觉睡在柴草上，吃饭睡觉都尝一尝苦胆。形容人刻苦自励，发奋图强。", firstChar: "卧", lastChar: "胆" },
+                { word: "悬梁刺股", explanation: "形容刻苦学习。", firstChar: "悬", lastChar: "股" },
+                { word: "负荆请罪", explanation: "背着荆条向对方请罪。表示向人认错赔罪。", firstChar: "负", lastChar: "罪" },
+                { word: "完璧归赵", explanation: "本指蔺相如将和氏璧完好地自秦送回赵国。后比喻把原物完好地归还本人。", firstChar: "完", lastChar: "赵" },
+                { word: "四面楚歌", explanation: "比喻陷入四面受敌、孤立无援的境地。", firstChar: "四", lastChar: "歌" },
+                { word: "三顾茅庐", explanation: "原为汉末刘备访聘诸葛亮的故事。比喻真心诚意，一再邀请。", firstChar: "三", lastChar: "庐" },
+                { word: "指鹿为马", explanation: "指着鹿，说是马。比喻故意颠倒黑白，混淆是非。", firstChar: "指", lastChar: "马" }
+            ],
+            '困难': [
+                { word: "足趼舌敝", explanation: "指费了许多力气和口舌。", firstChar: "足", lastChar: "敝" },
+                { word: "足不窥户", explanation: "不出大门一步。指闭门自守。", firstChar: "足", lastChar: "户" },
+                { word: "足兵足食", explanation: "粮食充足，武备修整。", firstChar: "足", lastChar: "食" },
+                { word: "足音空谷", explanation: "比喻难得的人物或言论。", firstChar: "足", lastChar: "谷" },
+                { word: "画蛇著足", explanation: "比喻做了多余的事，非但无益，反而不合适。同“画蛇添足”。", firstChar: "画", lastChar: "足" },
+                { word: "狐死首丘", explanation: "传说狐狸将死时，头必朝向出生的山丘。比喻不忘本。也比喻暮年思念故乡。", firstChar: "狐", lastChar: "丘" },
+                { word: "噤若寒蝉", explanation: "像深秋的蝉那样一声不吭。比喻因害怕有所顾虑而不敢说话。", firstChar: "噤", lastChar: "蝉" },
+                { word: "魑魅魍魉", explanation: "原为古代传说中的鬼怪。指形形色色的坏人。", firstChar: "魑", lastChar: "魉" },
+                { word: "醍醐灌顶", explanation: "佛教指灌输智慧，使人彻底觉悟。比喻听了高明的意见使人受到很大启发。也形容清凉舒适。", firstChar: "醍", lastChar: "顶" },
+                { word: "沆瀣一气", explanation: "比喻臭味相投的人结合在一起。", firstChar: "沆", lastChar: "气" },
+                { word: "栉风沐雨", explanation: "风梳发，雨洗头。形容人经常在外面不顾风雨地辛苦奔波。", firstChar: "栉", lastChar: "雨" },
+                { word: "越俎代庖", explanation: "主祭的人跨过礼器去代替厨师办席。比喻超出自己业务范围去处理别人所管的事。", firstChar: "越", lastChar: "庖" },
+                { word: "蟾宫折桂", explanation: "攀折月宫桂花。科举时代比喻应考得中。", firstChar: "蟾", lastChar: "桂" },
+                { word: "沤珠槿艳", explanation: "比喻短暂的幻景。", firstChar: "沤", lastChar: "艳" },
+                { word: "彘肩斗酒", explanation: "形容英雄豪壮之气。", firstChar: "彘", lastChar: "酒" }
+            ]
+        };
+
+        // 游戏状态
+        let gameState = {
+            difficulty: null,
+            score: 0,
+            timeLeft: 60,
+            timerInterval: null,
+            currentChar: '',
+            lastIdiom: null,
+            currentIdiom: null,
+            shuffledChars: [],
+            selectedChars: Array(4).fill(null),
+            usedIdioms: new Set(),
+            hintUsed: false
+        };
+
+        // DOM元素
+        const difficultySelection = document.getElementById('difficulty-selection');
+        const gameContainer = document.getElementById('game-container');
+        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const lastIdiomDisplay = document.getElementById('last-idiom');
+        const lastIdiomMeaning = document.getElementById('last-idiom-meaning');
+        const currentCharDisplay = document.getElementById('current-character');
+        const feedback = document.getElementById('feedback');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const changeDifficultyBtn = document.getElementById('change-difficulty-btn');
+        const charSource = document.getElementById('char-source');
+        const starsContainer = document.getElementById('stars-container');
+        const slotBubbles = document.querySelectorAll('.slot-bubble');
+
+        // 创建星空背景
+        function createStars() {
+            // 创建不同大小的星星
+            for (let i = 0; i < 150; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // 随机大小
+                const size = Math.random() * 3;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                // 随机位置
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                
+                // 随机动画参数
+                const duration = 3 + Math.random() * 5;
+                const opacity = 0.3 + Math.random() * 0.7;
+                
+                star.style.setProperty('--duration', `${duration}s`);
+                star.style.setProperty('--opacity', opacity);
+                
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // 初始化游戏
+        function init() {
+            createStars();
+            setupEventListeners();
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 难度选择按钮
+            difficultyBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const difficulty = btn.id === 'easy' ? '简单' : 
+                                      btn.id === 'medium' ? '中等' : '困难';
+                    initGame(difficulty);
+                });
+            });
+
+            // 提交按钮
+            submitBtn.addEventListener('click', checkAnswer);
+
+            // 重新打乱按钮
+            shuffleBtn.addEventListener('click', reshuffleChars);
+
+            // 提示按钮
+            hintBtn.addEventListener('click', showHint);
+
+            // 再玩一次按钮
+            playAgainBtn.addEventListener('click', () => {
+                gameOverModal.classList.remove('opacity-100', 'pointer-events-auto');
+                gameOverModal.classList.add('opacity-0', 'pointer-events-none');
+                initGame(gameState.difficulty);
+            });
+
+            // 更换难度按钮
+            changeDifficultyBtn.addEventListener('click', () => {
+                gameOverModal.classList.remove('opacity-100', 'pointer-events-auto');
+                gameOverModal.classList.add('opacity-0', 'pointer-events-none');
+                difficultySelection.classList.remove('hidden');
+                gameContainer.classList.add('hidden');
+            });
+        }
+
+        // 初始化游戏
+        function initGame(difficulty) {
+            gameState.difficulty = difficulty;
+            gameState.score = 0;
+            gameState.timeLeft = 60;
+            gameState.usedIdioms.clear();
+            gameState.hintUsed = false;
+            gameState.lastIdiom = null;
+            
+            // 更新UI
+            scoreDisplay.textContent = gameState.score;
+            timerDisplay.textContent = gameState.timeLeft;
+            
+            // 随机选择一个成语开始
+            startNewGame();
+            
+            // 显示游戏容器
+            difficultySelection.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+            
+            // 启动计时器
+            startTimer();
+        }
+
+        // 开始新游戏
+        function startNewGame() {
+            // 如果是第一轮
+            if (!gameState.lastIdiom) {
+                // 随机选择一个起始字
+                const randomStartChar = ['画', '狐', '井', '守', '叶'][Math.floor(Math.random() * 5)];
+                gameState.currentChar = randomStartChar;
+                gameState.currentIdiom = getRandomIdiom(randomStartChar, gameState.difficulty);
+                gameState.usedIdioms.add(gameState.currentIdiom.word);
+                
+                // 更新UI
+                lastIdiomDisplay.textContent = "游戏开始";
+                lastIdiomMeaning.textContent = "请根据起始字拼接成语";
+                currentCharDisplay.textContent = gameState.currentChar;
+            } else {
+                // 根据当前起始字选择成语
+                gameState.currentIdiom = getRandomIdiom(gameState.currentChar, gameState.difficulty);
+                gameState.usedIdioms.add(gameState.currentIdiom.word);
+                
+                // 更新UI
+                lastIdiomDisplay.textContent = gameState.lastIdiom.word;
+                lastIdiomMeaning.textContent = gameState.lastIdiom.explanation;
+                currentCharDisplay.textContent = gameState.currentChar;
+            }
+            
+            gameState.selectedChars = Array(4).fill(null);
+            
+            // 清空成语拼接区域
+            clearIdiomSlots();
+            
+            // 生成随机字符
+            generateRandomChars();
+            
+            // 清空反馈
+            feedback.textContent = '';
+            feedback.className = 'mt-6 h-12 flex items-center justify-center text-lg font-bold';
+            
+            // 启用按钮
+            submitBtn.disabled = true;
+            shuffleBtn.disabled = false;
+            hintBtn.disabled = false;
+        }
+
+        // 获取随机成语
+        function getRandomIdiom(startChar, difficulty) {
+            const idioms = idiomsData[difficulty];
+            
+            // 过滤以指定字符开头的成语
+            const filteredIdioms = idioms.filter(idiom => idiom.firstChar === startChar);
+            
+            if (filteredIdioms.length > 0) {
+                return filteredIdioms[Math.floor(Math.random() * filteredIdioms.length)];
+            }
+            
+            return idioms[Math.floor(Math.random() * idioms.length)];
+        }
+
+        // 清空成语插槽
+        function clearIdiomSlots() {
+            slotBubbles.forEach(slot => {
+                slot.textContent = '';
+                slot.classList.remove('filled');
+            });
+        }
+
+        // 生成随机字符
+        function generateRandomChars() {
+            // 清空源区域
+            charSource.innerHTML = '';
+            
+            // 获取当前成语的字符
+            const idiomChars = gameState.currentIdiom.word.split('');
+            
+            // 生成干扰字符
+            const disturbanceCount = gameState.difficulty === '简单' ? 4 : 
+                                   gameState.difficulty === '中等' ? 6 : 8;
+            const disturbanceChars = generateRandomDisturbanceChars(idiomChars, disturbanceCount);
+            
+            // 合并并打乱字符
+            const allChars = [...idiomChars, ...disturbanceChars];
+            gameState.shuffledChars = shuffleArray(allChars);
+            
+            // 创建字符元素
+            gameState.shuffledChars.forEach((char, index) => {
+                const charElement = document.createElement('div');
+                charElement.className = 'character-bubble';
+                charElement.textContent = char;
+                charElement.dataset.char = char;
+                charElement.dataset.index = index;
+                charElement.style.setProperty('--i', index);
+                
+                // 添加点击事件
+                charElement.addEventListener('click', () => {
+                    selectChar(charElement);
+                });
+                
+                charSource.appendChild(charElement);
+            });
+        }
+
+        // 生成随机干扰字符
+        function generateRandomDisturbanceChars(correctChars, disturbanceCount) {
+            // 常用汉字范围
+            const startCode = 0x4E00; // 汉字起始编码
+            const endCode = 0x9FA5;   // 汉字结束编码
+            
+            const disturbanceChars = [];
+            
+            // 确保干扰字符不与正确字符重复
+            while (disturbanceChars.length < disturbanceCount) {
+                const randomCode = Math.floor(Math.random() * (endCode - startCode + 1)) + startCode;
+                const randomChar = String.fromCodePoint(randomCode);
+                
+                if (!correctChars.includes(randomChar) && !disturbanceChars.includes(randomChar)) {
+                    disturbanceChars.push(randomChar);
+                }
+            }
+            
+            return disturbanceChars;
+        }
+
+        // 打乱数组
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // 选择字符
+        function selectChar(charElement) {
+            const char = charElement.dataset.char;
+            
+            // 查找第一个空的插槽
+            const emptySlot = Array.from(slotBubbles).find(slot => !slot.textContent);
+            
+            if (emptySlot) {
+                const slotIndex = parseInt(emptySlot.dataset.index);
+                
+                // 更新选中字符数组
+                gameState.selectedChars[slotIndex] = char;
+                
+                // 更新UI
+                emptySlot.textContent = char;
+                emptySlot.classList.add('filled');
+                
+                // 禁用字符元素
+                charElement.classList.add('used');
+                charElement.removeEventListener('click', () => selectChar(charElement));
+                
+                // 检查是否所有插槽都已填满
+                checkSlotsFilled();
+            }
+        }
+
+        // 检查插槽是否填满
+        function checkSlotsFilled() {
+            const isFilled = gameState.selectedChars.every(char => char !== null);
+            submitBtn.disabled = !isFilled;
+        }
+
+        // 重新打乱字符
+        function reshuffleChars() {
+            // 清空插槽
+            slotBubbles.forEach(slot => {
+                if (slot.textContent) {
+                    // 找到对应的字符元素并启用
+                    const charElement = Array.from(charSource.children).find(
+                        el => el.dataset.char === slot.textContent && el.classList.contains('used')
+                    );
+                    
+                    if (charElement) {
+                        charElement.classList.remove('used');
+                        charElement.addEventListener('click', () => selectChar(charElement));
+                    }
+                    
+                    // 清空插槽
+                    slot.textContent = '';
+                    slot.classList.remove('filled');
+                }
+            });
+            
+            // 重置选中字符数组
+            gameState.selectedChars = Array(4).fill(null);
+            
+            // 打乱字符
+            gameState.shuffledChars = shuffleArray(gameState.shuffledChars);
+            
+            // 更新UI
+            charSource.innerHTML = '';
+            gameState.shuffledChars.forEach((char, index) => {
+                const charElement = document.createElement('div');
+                charElement.className = 'character-bubble';
+                charElement.textContent = char;
+                charElement.dataset.char = char;
+                charElement.dataset.index = index;
+                charElement.style.setProperty('--i', index);
+                
+                // 添加点击事件
+                charElement.addEventListener('click', () => {
+                    selectChar(charElement);
+                });
+                
+                charSource.appendChild(charElement);
+            });
+            
+            // 禁用提交按钮
+            submitBtn.disabled = true;
+            
+            // 减少分数和时间作为惩罚
+            gameState.score = Math.max(0, gameState.score - 5);
+            gameState.timeLeft = Math.max(5, gameState.timeLeft - 5);
+            
+            // 更新UI
+            scoreDisplay.textContent = gameState.score;
+            timerDisplay.textContent = gameState.timeLeft;
+            
+            // 显示反馈
+            showFeedback('重新打乱！扣5分和5秒时间', 'text-red-400');
+        }
+
+        // 检查答案
+        function checkAnswer() {
+            const userAnswer = gameState.selectedChars.join('');
+            const correctAnswer = gameState.currentIdiom.word;
+            
+            if (userAnswer === correctAnswer) {
+                // 正确
+                gameState.score += 10;
+                scoreDisplay.textContent = gameState.score;
+                showFeedback('回答正确！+10分', 'text-green-400');
+                
+                // 设置当前成语为上一轮成语
+                gameState.lastIdiom = gameState.currentIdiom;
+                gameState.currentChar = gameState.currentIdiom.lastChar;
+                
+                // 延迟后进入下一题
+                setTimeout(() => {
+                    startNewGame();
+                }, 1500);
+            } else {
+                // 错误
+                gameState.score = Math.max(0, gameState.score - 5);
+                scoreDisplay.textContent = gameState.score;
+                showFeedback(`回答错误！正确答案: ${correctAnswer}`, 'text-red-400');
+                
+                // 延迟后进入下一题
+                setTimeout(() => {
+                    startNewGame();
+                }, 2000);
+            }
+        }
+
+        // 显示提示
+        function showHint() {
+            if (gameState.hintUsed) {
+                showFeedback('本局已使用过提示', 'text-yellow-400');
+                return;
+            }
+            
+            gameState.hintUsed = true;
+            gameState.timeLeft = Math.max(5, gameState.timeLeft - 10);
+            timerDisplay.textContent = gameState.timeLeft;
+            
+            // 显示提示（显示一个正确字符的位置）
+            const correctIdiom = gameState.currentIdiom.word.split('');
+            const emptySlots = Array.from(slotBubbles)
+                .map((slot, index) => ({ slot, index }))
+                .filter(item => !item.slot.textContent);
+            
+            if (emptySlots.length > 0) {
+                const randomSlot = emptySlots[Math.floor(Math.random() * emptySlots.length)];
+                const correctChar = correctIdiom[randomSlot.index];
+                
+                // 找到对应的字符元素
+                const charElement = Array.from(charSource.children).find(
+                    el => el.dataset.char === correctChar && !el.classList.contains('used')
+                );
+                
+                if (charElement) {
+                    // 高亮提示字符
+                    charElement.classList.add('pulse');
+                    
+                    // 3秒后恢复正常
+                    setTimeout(() => {
+                        charElement.classList.remove('pulse');
+                    }, 3000);
+                    
+                    showFeedback(`提示: 第${randomSlot.index + 1}个位置是 "${correctChar}"`, 'text-yellow-400');
+                }
+            }
+        }
+
+        // 显示反馈信息
+        function showFeedback(message, colorClass) {
+            feedback.textContent = message;
+            feedback.className = `mt-6 h-12 flex items-center justify-center text-lg font-bold ${colorClass}`;
+        }
+
+        // 启动计时器
+        function startTimer() {
+            clearInterval(gameState.timerInterval);
+            
+            gameState.timerInterval = setInterval(() => {
+                gameState.timeLeft--;
+                timerDisplay.textContent = gameState.timeLeft;
+                
+                if (gameState.timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // 结束游戏
+        function endGame() {
+            clearInterval(gameState.timerInterval);
+            
+            // 更新最终得分
+            finalScoreDisplay.textContent = gameState.score;
+            
+            // 显示游戏结束弹窗
+            gameOverModal.classList.remove('opacity-0', 'pointer-events-none');
+            gameOverModal.classList.add('opacity-100', 'pointer-events-auto');
+        }
+
+        // 初始化游戏
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
