@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24点小游戏</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#FF7D00',
+                        accent: '#00B42A',
+                        danger: '#F53F3F',
+                        neutral: '#86909C',
+                        'neutral-light': '#F2F3F5',
+                        'neutral-dark': '#4E5969'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 4px 12px rgba(0, 0, 0, 0.08)',
+                        'button': '0 2px 4px rgba(22, 93, 255, 0.2)',
+                    }
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .input-focus {
+                @apply focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none;
+            }
+            .btn-hover {
+                @apply hover:shadow-button hover:-translate-y-0.5 transition-all duration-200;
+            }
+            .btn-primary {
+                @apply bg-primary text-white px-4 py-2 rounded-lg font-medium btn-hover;
+            }
+            .btn-secondary {
+                @apply bg-white text-primary border border-primary px-4 py-2 rounded-lg font-medium btn-hover;
+            }
+            .btn-danger {
+                @apply bg-danger text-white px-4 py-2 rounded-lg font-medium btn-hover;
+            }
+            .btn-disabled {
+                @apply bg-neutral-light text-neutral cursor-not-allowed hover:shadow-none hover:-translate-y-0;
+            }
+            .btn-operator {
+                @apply bg-secondary text-white px-4 py-3 rounded-lg text-xl font-bold btn-hover;
+            }
+            .btn-number {
+                @apply bg-primary text-white px-4 py-3 rounded-lg text-xl font-bold btn-hover;
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- 游戏标题 -->
+        <header class="text-center mb-8">
+            <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-primary mb-2 tracking-tight">24点小游戏</h1>
+            <p class="text-neutral-dark text-lg">使用四则运算将四个数字组合得到24</p>
+        </header>
+
+        <!-- 游戏主体 -->
+        <main class="bg-white rounded-2xl shadow-card p-6 md:p-8 mb-8">
+            <!-- 游戏信息栏 -->
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="bg-neutral-light rounded-lg p-3 text-center">
+                        <p class="text-sm text-neutral mb-1">得分</p>
+                        <p class="text-2xl font-bold text-primary" id="score">0</p>
+                    </div>
+                    <div class="bg-neutral-light rounded-lg p-3 text-center">
+                        <p class="text-sm text-neutral mb-1">剩余时间</p>
+                        <p class="text-2xl font-bold text-primary" id="timer">30</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <select id="difficulty" class="bg-white border border-neutral-light rounded-lg px-4 py-2 pr-8 appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20">
+                            <option value="easy">简单 (30秒)</option>
+                            <option value="medium" selected>中等 (20秒)</option>
+                            <option value="hard">困难 (15秒)</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-neutral">
+                            <i class="fa fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                    <button id="restart" class="btn-secondary flex items-center gap-2">
+                        <i class="fa fa-refresh"></i>
+                        <span>重新开始</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 数字卡片区域 -->
+            <div class="grid grid-cols-4 gap-4 mb-6" id="numbers-container">
+                <!-- 数字卡片将通过JavaScript动态生成 -->
+            </div>
+
+            <!-- 运算符按钮区域 -->
+            <div class="grid grid-cols-4 gap-3 mb-6">
+                <button class="btn-operator" data-operator="+">+</button>
+                <button class="btn-operator" data-operator="-">-</button>
+                <button class="btn-operator" data-operator="*">×</button>
+                <button class="btn-operator" data-operator="/">÷</button>
+                <button class="btn-operator" data-operator="(">(</button>
+                <button class="btn-operator" data-operator=")">)</button>
+                <button class="btn-danger" id="clear">清空</button>
+                <button class="btn-primary" id="calculate">
+                    <i class="fa fa-calculator mr-2"></i>
+                    计算
+                </button>
+            </div>
+
+            <!-- 输入表达式区域 -->
+            <div class="mb-6">
+                <label for="expression" class="block text-neutral-dark mb-2 font-medium">当前表达式:</label>
+                <input type="text" id="expression" readonly class="w-full px-4 py-3 rounded-lg border border-neutral-light bg-neutral-light text-lg">
+                <p id="expression-hint" class="text-sm text-neutral mt-2">
+                    <i class="fa fa-info-circle mr-1"></i>
+                    <span>点击数字和运算符按钮构建表达式</span>
+                </p>
+            </div>
+
+            <!-- 历史记录区域 -->
+            <div class="mb-6">
+                <h2 class="text-lg font-medium text-neutral-dark mb-3 flex items-center">
+                    <i class="fa fa-history mr-2"></i>
+                    历史记录
+                </h2>
+                <div id="history" class="space-y-2 max-h-40 overflow-y-auto">
+                    <!-- 历史记录将通过JavaScript动态生成 -->
+                </div>
+            </div>
+
+            <!-- 控制按钮区域 -->
+            <div class="flex flex-wrap gap-3 justify-center">
+                <button id="hint" class="btn-secondary flex items-center gap-2">
+                    <i class="fa fa-lightbulb-o"></i>
+                    <span>提示</span>
+                </button>
+                <button id="show-answer" class="btn-secondary flex items-center gap-2">
+                    <i class="fa fa-eye"></i>
+                    <span>显示答案</span>
+                </button>
+                <button id="next" class="btn-primary flex items-center gap-2">
+                    <i class="fa fa-arrow-right"></i>
+                    <span>下一题</span>
+                </button>
+            </div>
+        </main>
+
+        <!-- 游戏说明 -->
+        <footer class="bg-white rounded-2xl shadow-card p-6 text-neutral-dark">
+            <h2 class="text-xl font-medium mb-4 flex items-center">
+                <i class="fa fa-book mr-2 text-primary"></i>
+                游戏说明
+            </h2>
+            <ul class="space-y-2 list-disc pl-5">
+                <li>游戏会随机生成4个1-13之间的数字</li>
+                <li>使用加减乘除运算将这4个数字组合，使结果等于24</li>
+                <li>每个数字必须且只能使用一次</li>
+                <li>通过括号改变运算顺序</li>
+                <li>点击数字和运算符按钮构建表达式</li>
+                <li>难度越高，每题的时间限制越短，得分也越高</li>
+            </ul>
+        </footer>
+    </div>
+
+    <!-- 结果弹窗 -->
+    <div id="result-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0" id="modal-content">
+            <div class="text-center">
+                <div id="result-icon" class="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl">
+                    <!-- 图标将通过JavaScript动态生成 -->
+                </div>
+                <h2 id="result-title" class="text-2xl font-bold mb-2">恭喜！</h2>
+                <p id="result-message" class="text-neutral-dark mb-6">你的答案正确！</p>
+                <div class="flex justify-center gap-3">
+                    <button id="modal-close" class="btn-secondary">
+                        <span>关闭</span>
+                    </button>
+                    <button id="modal-next" class="btn-primary">
+                        <span>下一题</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 游戏状态
+            const gameState = {
+                numbers: [],
+                solution: null,
+                score: 0,
+                timeLimit: 20, // 默认中等难度
+                timer: null,
+                timeRemaining: 20,
+                currentRound: 1,
+                history: [],
+                isGameOver: false,
+                usedNumbers: []
+            };
+
+            // DOM 元素
+            const elements = {
+                numbersContainer: document.getElementById('numbers-container'),
+                expressionInput: document.getElementById('expression'),
+                calculateButton: document.getElementById('calculate'),
+                clearButton: document.getElementById('clear'),
+                hintButton: document.getElementById('hint'),
+                showAnswerButton: document.getElementById('show-answer'),
+                nextButton: document.getElementById('next'),
+                restartButton: document.getElementById('restart'),
+                difficultySelect: document.getElementById('difficulty'),
+                scoreElement: document.getElementById('score'),
+                timerElement: document.getElementById('timer'),
+                historyElement: document.getElementById('history'),
+                resultModal: document.getElementById('result-modal'),
+                modalContent: document.getElementById('modal-content'),
+                resultTitle: document.getElementById('result-title'),
+                resultMessage: document.getElementById('result-message'),
+                resultIcon: document.getElementById('result-icon'),
+                modalCloseButton: document.getElementById('modal-close'),
+                modalNextButton: document.getElementById('modal-next'),
+                expressionHint: document.getElementById('expression-hint'),
+                operatorButtons: document.querySelectorAll('.btn-operator')
+            };
+
+            // 预定义的有解数字组合和对应答案
+            const predefinedProblems = [
+                {
+                    numbers: [1, 5, 5, 5],
+                    solution: "5*(5-1/5)"
+                },
+                {
+                    numbers: [3, 3, 8, 8],
+                    solution: "8/(3-8/3)"
+                },
+                {
+                    numbers: [4, 4, 10, 10],
+                    solution: "(10*10-4)/4"
+                },
+                {
+                    numbers: [1, 3, 4, 6],
+                    solution: "6/(1-3/4)"
+                },
+                {
+                    numbers: [2, 5, 7, 10],
+                    solution: "(10-5)*(7-2)"
+                },
+                {
+                    numbers: [1, 2, 8, 8],
+                    solution: "(8+8)*(2-1)"
+                },
+                {
+                    numbers: [3, 4, 6, 7],
+                    solution: "(7-6/3)*4"
+                },
+                {
+                    numbers: [2, 2, 6, 9],
+                    solution: "(9*2)+(6/2)"
+                },
+                {
+                    numbers: [1, 4, 5, 6],
+                    solution: "6/(5/4-1)"
+                },
+                {
+                    numbers: [2, 3, 5, 12],
+                    solution: "12*(5-3)/2"
+                },
+                {
+                    numbers: [3, 5, 7, 9],
+                    solution: "(9-5)*(7-3)"
+                },
+                {
+                    numbers: [4, 5, 6, 7],
+                    solution: "(7+5)*(6-4)"
+                },
+                {
+                    numbers: [2, 4, 6, 8],
+                    solution: "(8*6)/(4+2)"
+                },
+                {
+                    numbers: [1, 1, 5, 5],
+                    solution: "(5*5)-(1/1)"
+                },
+                {
+                    numbers: [2, 3, 4, 6],
+                    solution: "(6*4)/(3-2)"
+                }
+            ];
+
+            // 初始化游戏
+            initGame();
+
+            // 初始化游戏事件监听
+            function initGameEvents() {
+                // 计算按钮点击事件
+                elements.calculateButton.addEventListener('click', evaluateExpression);
+                
+                // 清空按钮点击事件
+                elements.clearButton.addEventListener('click', clearExpression);
+                
+                // 提示按钮点击事件
+                elements.hintButton.addEventListener('click', showHint);
+                
+                // 显示答案按钮点击事件
+                elements.showAnswerButton.addEventListener('click', showAnswer);
+                
+                // 下一题按钮点击事件
+                elements.nextButton.addEventListener('click', nextRound);
+                
+                // 重新开始按钮点击事件
+                elements.restartButton.addEventListener('click', restartGame);
+                
+                // 难度选择变化事件
+                elements.difficultySelect.addEventListener('change', changeDifficulty);
+                
+                // 运算符按钮点击事件
+                elements.operatorButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        if (gameState.isGameOver) return;
+                        const operator = button.getAttribute('data-operator');
+                        addToExpression(operator);
+                    });
+                });
+                
+                // 模态框关闭按钮点击事件
+                elements.modalCloseButton.addEventListener('click', closeModal);
+                elements.modalNextButton.addEventListener('click', () => {
+                    closeModal();
+                    nextRound();
+                });
+            }
+
+            // 初始化游戏
+            function initGame() {
+                generateNumbers();
+                renderNumbers();
+                startTimer();
+                updateScore();
+                initGameEvents();
+            }
+
+            // 生成随机数字（使用预定义的有解组合）
+            function generateNumbers() {
+                // 从预定义组合中随机选择一组
+                const randomIndex = Math.floor(Math.random() * predefinedProblems.length);
+                const problem = predefinedProblems[randomIndex];
+                
+                gameState.numbers = [...problem.numbers];
+                gameState.solution = problem.solution;
+                gameState.usedNumbers = [];
+                gameState.isGameOver = false;
+                
+                // 清空表达式
+                clearExpression();
+            }
+
+            // 渲染数字卡片
+            function renderNumbers() {
+                elements.numbersContainer.innerHTML = '';
+                
+                gameState.numbers.forEach((num, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'btn-number';
+                    button.textContent = num;
+                    button.dataset.number = num;
+                    
+                    button.addEventListener('click', () => {
+                        if (gameState.isGameOver) return;
+                        
+                        // 检查数字是否已经使用过
+                        const usedCount = gameState.usedNumbers.filter(n => n === num).length;
+                        const totalCount = gameState.numbers.filter(n => n === num).length;
+                        
+                        if (usedCount >= totalCount) {
+                            showToast(`数字 ${num} 已经使用完毕`);
+                            return;
+                        }
+                        
+                        // 添加数字到表达式
+                        addToExpression(num.toString());
+                        
+                        // 记录已使用数字
+                        gameState.usedNumbers.push(num);
+                    });
+                    
+                    elements.numbersContainer.appendChild(button);
+                });
+            }
+
+            // 添加到表达式
+            function addToExpression(value) {
+                const currentExpr = elements.expressionInput.value;
+                elements.expressionInput.value = currentExpr + value;
+            }
+
+            // 清空表达式
+            function clearExpression() {
+                elements.expressionInput.value = '';
+                gameState.usedNumbers = [];
+            }
+
+            // 开始计时器
+            function startTimer() {
+                // 清除之前的计时器
+                if (gameState.timer) {
+                    clearInterval(gameState.timer);
+                }
+                
+                // 设置剩余时间
+                gameState.timeRemaining = gameState.timeLimit;
+                updateTimer();
+                
+                // 启动新计时器
+                gameState.timer = setInterval(() => {
+                    gameState.timeRemaining--;
+                    updateTimer();
+                    
+                    // 时间到
+                    if (gameState.timeRemaining <= 0) {
+                        clearInterval(gameState.timer);
+                        gameState.isGameOver = true;
+                        showResult(false, '时间到！没有解出答案。');
+                        disableButtons();
+                    }
+                }, 1000);
+            }
+
+            // 更新计时器显示
+            function updateTimer() {
+                elements.timerElement.textContent = gameState.timeRemaining;
+                
+                // 时间少于5秒时显示警告
+                if (gameState.timeRemaining <= 5) {
+                    elements.timerElement.classList.add('text-danger');
+                    elements.timerElement.classList.add('animate-pulse');
+                } else {
+                    elements.timerElement.classList.remove('text-danger');
+                    elements.timerElement.classList.remove('animate-pulse');
+                }
+            }
+
+            // 更新分数显示
+            function updateScore() {
+                elements.scoreElement.textContent = gameState.score;
+            }
+
+            // 评估表达式
+            function evaluateExpression() {
+                if (gameState.isGameOver) return;
+                
+                const expression = elements.expressionInput.value.trim();
+                
+                if (!expression) {
+                    showToast('请输入表达式');
+                    return;
+                }
+                
+                // 验证表达式是否使用了所有数字且仅使用一次
+                if (!validateExpression(expression)) {
+                    showToast('必须使用且仅使用所有的数字一次');
+                    return;
+                }
+                
+                try {
+                    // 使用安全的方法计算表达式
+                    const result = safeEval(expression);
+                    
+                    if (Math.abs(result - 24) < 0.0001) {
+                        // 计算得分
+                        const timeBonus = Math.max(0, gameState.timeRemaining);
+                        const difficultyMultiplier = {
+                            'easy': 1,
+                            'medium': 1.5,
+                            'hard': 2
+                        };
+                        const multiplier = difficultyMultiplier[elements.difficultySelect.value] || 1;
+                        const roundScore = Math.floor((10 + timeBonus) * multiplier);
+                        
+                        gameState.score += roundScore;
+                        gameState.isGameOver = true;
+                        
+                        // 添加到历史记录
+                        addToHistory(true, expression, roundScore);
+                        
+                        // 显示成功消息
+                        showResult(true, `恭喜！答案正确！获得 ${roundScore} 分`, roundScore);
+                        
+                        // 禁用按钮
+                        disableButtons();
+                    } else {
+                        // 添加到历史记录
+                        addToHistory(false, expression);
+                        
+                        // 显示错误消息
+                        showToast(`计算结果为 ${result.toFixed(2)}，不等于24`);
+                    }
+                } catch (error) {
+                    showToast('表达式格式错误，请检查');
+                    console.error('表达式计算错误:', error);
+                }
+            }
+
+            // 验证表达式是否使用了所有数字且仅使用一次
+            function validateExpression(expression) {
+                // 从表达式中提取所有数字
+                const exprNums = expression.match(/\d+/g)?.map(Number) || [];
+                
+                // 检查是否使用了所有数字且仅使用一次
+                if (exprNums.length !== 4) {
+                    return false;
+                }
+                
+                // 复制并排序原始数字和表达式中的数字
+                const sortedOriginal = [...gameState.numbers].sort((a, b) => a - b);
+                const sortedExpr = [...exprNums].sort((a, b) => a - b);
+                
+                // 比较两个数组是否相等
+                return sortedOriginal.every((num, index) => num === sortedExpr[index]);
+            }
+
+            // 安全计算表达式
+            function safeEval(expr) {
+                // 替换中文括号为英文括号
+                expr = expr.replace(/（/g, '(').replace(/）/g, ')');
+                
+                // 验证表达式只包含数字、运算符和括号
+                if (!/^[\d+\-*/().\s]+$/.test(expr)) {
+                    throw new Error('表达式包含非法字符');
+                }
+                
+                // 使用更精确的计算方法
+                try {
+                    // 处理除法，确保不会因为浮点数精度问题导致错误
+                    const tokens = expr.match(/(\d+\.?\d*)|([+\-*/()])/g) || [];
+                    const outputQueue = [];
+                    const operatorStack = [];
+                    
+                    // 定义运算符优先级
+                    const precedence = {
+                        '+': 1,
+                        '-': 1,
+                        '*': 2,
+                        '/': 2
+                    };
+                    
+                    // 转换为逆波兰表达式
+                    tokens.forEach(token => {
+                        if (!isNaN(token)) {
+                            outputQueue.push(parseFloat(token));
+                        } else if (token in precedence) {
+                            while (operatorStack.length > 0 && 
+                                   operatorStack[operatorStack.length - 1] !== '(' && 
+                                   precedence[operatorStack[operatorStack.length - 1]] >= precedence[token]) {
+                                outputQueue.push(operatorStack.pop());
+                            }
+                            operatorStack.push(token);
+                        } else if (token === '(') {
+                            operatorStack.push(token);
+                        } else if (token === ')') {
+                            while (operatorStack.length > 0 && operatorStack[operatorStack.length - 1] !== '(') {
+                                outputQueue.push(operatorStack.pop());
+                            }
+                            operatorStack.pop(); // 弹出左括号
+                        }
+                    });
+                    
+                    // 将剩余运算符加入队列
+                    while (operatorStack.length > 0) {
+                        outputQueue.push(operatorStack.pop());
+                    }
+                    
+                    // 计算逆波兰表达式
+                    const evalStack = [];
+                    outputQueue.forEach(token => {
+                        if (typeof token === 'number') {
+                            evalStack.push(token);
+                        } else {
+                            const b = evalStack.pop();
+                            const a = evalStack.pop();
+                            switch (token) {
+                                case '+': evalStack.push(a + b); break;
+                                case '-': evalStack.push(a - b); break;
+                                case '*': evalStack.push(a * b); break;
+                                case '/': 
+                                    if (b === 0) throw new Error('除数不能为零');
+                                    evalStack.push(a / b); 
+                                    break;
+                            }
+                        }
+                    });
+                    
+                    if (evalStack.length !== 1) {
+                        throw new Error('表达式格式错误');
+                    }
+                    
+                    return evalStack[0];
+                } catch (e) {
+                    throw new Error('表达式计算错误: ' + e.message);
+                }
+            }
+
+            // 显示提示
+            function showHint() {
+                if (gameState.isGameOver) return;
+                
+                if (!gameState.solution) {
+                    showToast('没有可用的提示');
+                    return;
+                }
+                
+                // 扣除提示分数
+                const hintPenalty = 5;
+                gameState.score = Math.max(0, gameState.score - hintPenalty);
+                updateScore();
+                
+                // 显示第一个字符作为提示
+                const hint = gameState.solution.charAt(0);
+                
+                showToast(`提示: 表达式以 "${hint}" 开头（扣除 ${hintPenalty} 分）`);
+            }
+
+            // 显示答案
+            function showAnswer() {
+                if (gameState.isGameOver) return;
+                
+                if (!gameState.solution) {
+                    showToast('没有找到答案');
+                    return;
+                }
+                
+                // 扣除显示答案的分数
+                const answerPenalty = 10;
+                gameState.score = Math.max(0, gameState.score - answerPenalty);
+                updateScore();
+                
+                // 添加到历史记录
+                addToHistory(false, gameState.solution, -answerPenalty, true);
+                
+                showToast(`答案: ${gameState.solution}（扣除 ${answerPenalty} 分）`);
+                
+                // 填入答案
+                elements.expressionInput.value = gameState.solution;
+                gameState.usedNumbers = [...gameState.numbers];
+            }
+
+            // 下一轮
+            function nextRound() {
+                // 生成新数字
+                generateNumbers();
+                renderNumbers();
+                
+                // 重置计时器
+                startTimer();
+                
+                // 启用按钮
+                enableButtons();
+                
+                // 更新轮次
+                gameState.currentRound++;
+            }
+
+            // 重新开始游戏
+            function restartGame() {
+                // 清除之前的计时器
+                if (gameState.timer) {
+                    clearInterval(gameState.timer);
+                }
+
+                // 重置游戏状态
+                gameState.score = 0;
+                gameState.currentRound = 1;
+                gameState.history = [];
+                gameState.timeRemaining = gameState.timeLimit;
+                gameState.isGameOver = false;
+                
+                // 清空历史记录
+                elements.historyElement.innerHTML = '';
+                
+                // 生成新数字
+                generateNumbers();
+                renderNumbers();
+                
+                // 重置计时器
+                startTimer();
+                
+                // 更新分数和计时器显示
+                updateScore();
+                updateTimer();
+                
+                // 启用按钮
+                enableButtons();
+                
+                showToast('游戏已重新开始');
+            }
+
+            // 更改难度
+            function changeDifficulty() {
+                const difficulty = elements.difficultySelect.value;
+                
+                switch (difficulty) {
+                    case 'easy':
+                        gameState.timeLimit = 30;
+                        break;
+                    case 'medium':
+                        gameState.timeLimit = 20;
+                        break;
+                    case 'hard':
+                        gameState.timeLimit = 15;
+                        break;
+                    default:
+                        gameState.timeLimit = 20;
+                }
+                
+                // 如果游戏正在进行中，重置计时器
+                if (gameState.timer) {
+                    startTimer();
+                }
+                
+                showToast(`难度已更改为: ${elements.difficultySelect.options[elements.difficultySelect.selectedIndex].text}`);
+            }
+
+            // 添加到历史记录
+            function addToHistory(isCorrect, expression, score = 0, isAnswer = false) {
+                const historyItem = {
+                    isCorrect,
+                    expression,
+                    score,
+                    time: new Date().toLocaleTimeString(),
+                    isAnswer
+                };
+                
+                gameState.history.push(historyItem);
+                renderHistory();
+            }
+
+            // 渲染历史记录
+            function renderHistory() {
+                elements.historyElement.innerHTML = '';
+                
+                // 只显示最近的5条记录
+                const recentHistory = gameState.history.slice(-5);
+                
+                recentHistory.forEach((item, index) => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = `flex items-center justify-between p-2 rounded-lg ${item.isCorrect ? 'bg-green-50' : (item.isAnswer ? 'bg-blue-50' : 'bg-red-50')}`;
+                    
+                    const expressionDisplay = item.isAnswer ? 
+                        `<span class="font-medium">正确答案:</span> ${item.expression}` : 
+                        `<span class="font-medium">你的答案:</span> ${item.expression}`;
+                    
+                    historyItem.innerHTML = `
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm ${item.isCorrect ? 'text-accent' : (item.isAnswer ? 'text-primary' : 'text-danger')} truncate">
+                                ${expressionDisplay}
+                            </p>
+                        </div>
+                        <div class="ml-4 flex-shrink-0">
+                            ${item.isCorrect ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">+${item.score}</span>` : 
+                               (item.isAnswer ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">-${Math.abs(item.score)}</span>` : '')}
+                        </div>
+                    `;
+                    
+                    elements.historyElement.appendChild(historyItem);
+                });
+            }
+
+            // 显示结果弹窗
+            function showResult(isCorrect, message, score = 0) {
+                // 设置结果内容
+                elements.resultTitle.textContent = isCorrect ? '恭喜！' : '再接再厉';
+                elements.resultMessage.textContent = message;
+                
+                // 设置图标
+                elements.resultIcon.className = isCorrect ? 
+                    'w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl bg-green-100 text-green-500' : 
+                    'w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl bg-red-100 text-red-500';
+                elements.resultIcon.innerHTML = isCorrect ? '<i class="fa fa-check"></i>' : '<i class="fa fa-times"></i>';
+                
+                // 如果是正确答案，显示得分
+                if (isCorrect && score > 0) {
+                    elements.resultMessage.innerHTML += `<div class="mt-3 text-xl font-bold text-primary">得分: +${score}</div>`;
+                }
+                
+                // 显示弹窗
+                elements.resultModal.classList.remove('hidden');
+                setTimeout(() => {
+                    elements.modalContent.classList.remove('scale-95', 'opacity-0');
+                    elements.modalContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+
+            // 关闭弹窗
+            function closeModal() {
+                elements.modalContent.classList.remove('scale-100', 'opacity-100');
+                elements.modalContent.classList.add('scale-95', 'opacity-0');
+                
+                setTimeout(() => {
+                    elements.resultModal.classList.add('hidden');
+                }, 300);
+            }
+
+            // 显示提示消息
+            function showToast(message) {
+                // 检查是否已存在toast
+                let toast = document.querySelector('.toast-notification');
+                
+                if (toast) {
+                    toast.remove();
+                }
+                
+                // 创建新toast
+                toast = document.createElement('div');
+                toast.className = 'toast-notification fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-neutral-dark text-white px-4 py-2 rounded-lg shadow-lg z-50 opacity-0 transition-opacity duration-300';
+                toast.textContent = message;
+                
+                document.body.appendChild(toast);
+                
+                // 显示toast
+                setTimeout(() => {
+                    toast.classList.remove('opacity-0');
+                    toast.classList.add('opacity-100');
+                }, 10);
+                
+                // 3秒后隐藏toast
+                setTimeout(() => {
+                    toast.classList.remove('opacity-100');
+                    toast.classList.add('opacity-0');
+                    
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 300);
+                }, 3000);
+            }
+
+            // 禁用按钮
+            function disableButtons() {
+                elements.calculateButton.disabled = true;
+                elements.calculateButton.classList.add('btn-disabled');
+                elements.hintButton.disabled = true;
+                elements.hintButton.classList.add('btn-disabled');
+                elements.showAnswerButton.disabled = true;
+                elements.showAnswerButton.classList.add('btn-disabled');
+            }
+
+            // 启用按钮
+            function enableButtons() {
+                elements.calculateButton.disabled = false;
+                elements.calculateButton.classList.remove('btn-disabled');
+                elements.hintButton.disabled = false;
+                elements.hintButton.classList.remove('btn-disabled');
+                elements.showAnswerButton.disabled = false;
+                elements.showAnswerButton.classList.remove('btn-disabled');
+            }
+        });
+    </script>
+</body>
+</html>
