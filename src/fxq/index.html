@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞行棋游戏</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#F97316',
+                        player1: '#EF4444',
+                        player2: '#10B981',
+                        player3: '#8B5CF6',
+                        player4: '#F59E0B',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .chess-shadow {
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+            }
+            .board-grid {
+                display: grid;
+                grid-template-columns: repeat(11, 1fr);
+                grid-template-rows: repeat(11, 1fr);
+            }
+            .home-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(2, 1fr);
+            }
+            .safe-path {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+            .dice-rolling {
+                animation: roll 0.5s linear infinite;
+            }
+            @keyframes roll {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            .player-piece {
+                transition: all 0.5s ease;
+            }
+            .player-piece.jump {
+                animation: jump 0.3s ease-in-out;
+            }
+            @keyframes jump {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-10px); }
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col items-center justify-center p-4 font-sans">
+    <div class="max-w-6xl w-full mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+        <!-- 游戏标题 -->
+        <header class="bg-gradient-to-r from-primary to-indigo-600 text-white p-6 text-center">
+            <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold flex items-center justify-center">
+                <i class="fa fa-paper-plane-o mr-3"></i>飞行棋游戏
+            </h1>
+            <p class="mt-2 text-white/80 text-[clamp(1rem,2vw,1.2rem)]">与电脑一起享受飞行棋的乐趣！</p>
+        </header>
+
+        <!-- 游戏主体 -->
+        <main class="flex flex-col lg:flex-row p-4 md:p-6 gap-6">
+            <!-- 游戏控制面板 -->
+            <div class="lg:w-1/4 flex flex-col gap-4">
+                <div class="bg-gray-50 rounded-xl p-5 shadow-md">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fa fa-sliders mr-2"></i>游戏控制
+                    </h2>
+                    <div class="flex flex-col gap-3">
+                        <button id="startGame" class="bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-play mr-2"></i>开始游戏
+                        </button>
+                        <button id="resetGame" class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-refresh mr-2"></i>重置游戏
+                        </button>
+                        <div class="relative">
+                            <label for="playerCount" class="block text-sm font-medium text-gray-700 mb-1">玩家数量</label>
+                            <select id="playerCount" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
+                                <option value="1">1人 vs 电脑</option>
+                                <option value="2">1人 vs 2电脑</option>
+                                <option value="3">1人 vs 3电脑</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 玩家信息 -->
+                <div class="bg-gray-50 rounded-xl p-5 shadow-md">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fa fa-users mr-2"></i>玩家信息
+                    </h2>
+                    <div id="playerInfo" class="space-y-3">
+                        <!-- 玩家信息将动态生成 -->
+                    </div>
+                </div>
+
+                <!-- 骰子区域 -->
+                <div class="bg-gray-50 rounded-xl p-5 shadow-md flex flex-col items-center">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">掷骰子</h2>
+                    <div id="diceContainer" class="bg-white rounded-lg p-5 w-full aspect-square max-w-[120px] flex items-center justify-center cursor-pointer hover:shadow-lg transition-all duration-300">
+                        <div id="dice" class="text-4xl font-bold">🎲</div>
+                    </div>
+                    <div id="diceValue" class="mt-3 text-xl font-bold text-primary">点击骰子开始游戏</div>
+                </div>
+
+                <!-- 音频控制 -->
+                <div class="bg-gray-50 rounded-xl p-5 shadow-md">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fa fa-music mr-2"></i>背景音乐
+                    </h2>
+                    <div class="flex items-center justify-between">
+                        <button id="playMusic" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 flex items-center">
+                            <i class="fa fa-play mr-2"></i>播放
+                        </button>
+                        <button id="pauseMusic" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 flex items-center">
+                            <i class="fa fa-pause mr-2"></i>暂停
+                        </button>
+                        <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5" 
+                               class="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary">
+                    </div>
+                    <audio id="bgMusic" loop>
+                        <source src="1.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放。
+                    </audio>
+                </div>
+            </div>
+
+            <!-- 游戏棋盘 -->
+            <div class="lg:w-3/4 bg-gray-50 rounded-xl p-4 md:p-6 shadow-md">
+                <div class="aspect-square w-full relative">
+                    <div id="gameBoard" class="board-grid w-full h-full bg-gradient-to-br from-blue-700 to-indigo-800 rounded-lg p-4">
+                        <!-- 游戏棋盘将动态生成 -->
+                    </div>
+                    
+                    <!-- 游戏消息提示 -->
+                    <div id="gameMessage" class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm text-gray-800 px-6 py-3 rounded-full shadow-lg z-10 transition-all duration-500 opacity-0">
+                        游戏消息将显示在这里
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 游戏说明 -->
+        <footer class="bg-gray-100 p-6 text-gray-700">
+            <h2 class="text-xl font-semibold mb-3 flex items-center">
+                <i class="fa fa-info-circle mr-2"></i>游戏说明
+            </h2>
+            <ul class="list-disc pl-5 space-y-1">
+                <li>点击"开始游戏"按钮开始新的游戏</li>
+                <li>你是玩家1，控制红色棋子，电脑控制其他颜色棋子</li>
+                <li>每位玩家轮流掷骰子，根据骰子点数移动棋子</li>
+                <li>掷出6点可以额外再掷一次，并可以让一个棋子从基地出发</li>
+                <li>如果你的棋子落在其他玩家的棋子上，对方棋子将被送回基地</li>
+                <li>率先将所有棋子移动到终点的玩家获胜</li>
+            </ul>
+        </footer>
+    </div>
+
+    <!-- 游戏结束弹窗 -->
+    <div id="gameOverModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
+                    <i class="fa fa-trophy text-3xl"></i>
+                </div>
+                <h3 id="winnerText" class="text-2xl font-bold text-gray-900 mb-2">游戏结束</h3>
+                <p id="winnerMessage" class="text-gray-600 mb-6">玩家获胜！</p>
+                <div class="flex justify-center">
+                    <button id="playAgain" class="bg-primary hover:bg-primary/90 text-white font-medium py-2 px-6 rounded-lg transition-all duration-300">
+                        再玩一次
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 游戏常量
+            const BOARD_SIZE = 11;
+            const PATH_LENGTH = 52;
+            const SAFE_SPACES = [0, 13, 26, 39];
+            const HOME_PATHS = {
+                1: [40, 41, 42, 43, 44, 45],
+                2: [46, 47, 48, 49, 50, 51],
+                3: [52, 53, 54, 55, 56, 57],
+                4: [58, 59, 60, 61, 62, 63]
+            };
+
+            // 玩家颜色和起始位置
+            const PLAYERS = {
+                1: { color: 'player1', home: [0, 0], start: 0, base: [[0, 0], [0, 1], [1, 0], [1, 1]] },
+                2: { color: 'player2', home: [0, 10], start: 13, base: [[0, 9], [0, 10], [1, 9], [1, 10]] },
+                3: { color: 'player3', home: [10, 10], start: 26, base: [[9, 9], [9, 10], [10, 9], [10, 10]] },
+                4: { color: 'player4', home: [10, 0], start: 39, base: [[9, 0], [9, 1], [10, 0], [10, 1]] }
+            };
+
+            // 游戏状态
+            let gameState = {
+                players: {},
+                currentPlayer: 1,
+                diceRolled: false,
+                diceValue: 0,
+                gameStarted: false,
+                gameOver: false
+            };
+
+            // 音频控制
+            const bgMusic = document.getElementById('bgMusic');
+            const playMusicBtn = document.getElementById('playMusic');
+            const pauseMusicBtn = document.getElementById('pauseMusic');
+            const volumeControl = document.getElementById('volumeControl');
+
+            playMusicBtn.addEventListener('click', () => {
+                bgMusic.play().catch(e => {
+                    console.error('播放音乐失败:', e);
+                    showGameMessage('由于浏览器限制，需要先与页面交互才能播放音乐');
+                });
+            });
+
+            pauseMusicBtn.addEventListener('click', () => {
+                bgMusic.pause();
+            });
+
+            volumeControl.addEventListener('input', () => {
+                bgMusic.volume = volumeControl.value;
+            });
+
+            // 游戏初始化
+            function initGame() {
+                const playerCount = parseInt(document.getElementById('playerCount').value) + 1; // 玩家+电脑
+                gameState = {
+                    players: {},
+                    currentPlayer: 1,
+                    diceRolled: false,
+                    diceValue: 0,
+                    gameStarted: true,
+                    gameOver: false
+                };
+
+                // 初始化玩家
+                for (let i = 1; i <= playerCount; i++) {
+                    gameState.players[i] = {
+                        pieces: [
+                            { position: -1, onPath: false },
+                            { position: -1, onPath: false },
+                            { position: -1, onPath: false },
+                            { position: -1, onPath: false }
+                        ],
+                        color: PLAYERS[i].color,
+                        home: PLAYERS[i].home,
+                        start: PLAYERS[i].start,
+                        base: PLAYERS[i].base,
+                        isComputer: i > 1 // 玩家1是人，其他是电脑
+                    };
+                }
+
+                renderBoard();
+                renderPlayerInfo();
+                updateCurrentPlayer();
+                showGameMessage(`游戏开始！你的回合，请掷骰子`);
+            }
+
+            // 渲染游戏棋盘
+            function renderBoard() {
+                const gameBoard = document.getElementById('gameBoard');
+                gameBoard.innerHTML = '';
+
+                // 创建棋盘格子
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'border border-gray-700/20 flex items-center justify-center relative';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        
+                        // 确定格子类型
+                        const cellType = getCellType(row, col);
+                        if (cellType === 'corner') {
+                            const playerId = getCornerPlayer(row, col);
+                            cell.className += ` bg-${PLAYERS[playerId].color}/20`;
+                            
+                            // 绘制玩家基地
+                            renderBase(cell, playerId);
+                        } else if (cellType === 'center') {
+                            cell.className += ' bg-white/10';
+                        } else if (cellType === 'path') {
+                            const pathIndex = getPathIndex(row, col);
+                            cell.className += ' bg-gray-100/30';
+                            
+                            // 为特殊位置添加标记
+                            if (SAFE_SPACES.includes(pathIndex)) {
+                                cell.className += ' safe-path';
+                                const marker = document.createElement('div');
+                                marker.className = 'w-3 h-3 rounded-full bg-white/70';
+                                cell.appendChild(marker);
+                            }
+                            
+                            // 绘制路径编号（调试用）
+                            // const pathNum = document.createElement('div');
+                            // pathNum.className = 'absolute top-0 left-0 text-xs text-gray-600';
+                            // pathNum.textContent = pathIndex;
+                            // cell.appendChild(pathNum);
+                        } else if (cellType === 'home-path') {
+                            const homePathInfo = getHomePathInfo(row, col);
+                            if (homePathInfo) {
+                                const { playerId, pathIndex } = homePathInfo;
+                                cell.className += ` bg-${PLAYERS[playerId].color}/30`;
+                                
+                                // 绘制终点标记
+                                if (pathIndex === 5) {
+                                    const finishMarker = document.createElement('div');
+                                    finishMarker.className = 'w-4 h-4 rounded-full bg-white/70 flex items-center justify-center';
+                                    finishMarker.innerHTML = '<i class="fa fa-flag text-xs text-gray-700"></i>';
+                                    cell.appendChild(finishMarker);
+                                }
+                            }
+                        }
+                        
+                        gameBoard.appendChild(cell);
+                    }
+                }
+                
+                // 绘制棋子
+                renderPieces();
+            }
+
+            // 确定格子类型
+            function getCellType(row, col) {
+                // 角落区域（玩家基地）
+                if ((row <= 1 && col <= 1) || 
+                    (row <= 1 && col >= 9) || 
+                    (row >= 9 && col >= 9) || 
+                    (row >= 9 && col <= 1)) {
+                    return 'corner';
+                }
+                
+                // 中心区域
+                if (row >= 4 && row <= 6 && col >= 4 && col <= 6) {
+                    return 'center';
+                }
+                
+                // 主路径
+                if (
+                    (row === 0 && col >= 2 && col <= 8) || 
+                    (row === 10 && col >= 2 && col <= 8) || 
+                    (col === 0 && row >= 2 && row <= 8) || 
+                    (col === 10 && row >= 2 && row <= 8) ||
+                    (row >= 2 && row <= 4 && col === 2) ||
+                    (row >= 2 && row <= 4 && col === 8) ||
+                    (row >= 6 && row <= 8 && col === 2) ||
+                    (row >= 6 && row <= 8 && col === 8)
+                ) {
+                    return 'path';
+                }
+                
+                // 玩家回家路径
+                if (
+                    (row >= 2 && row <= 3 && col === 4) || (row === 2 && col >= 4 && col <= 5) || // 玩家1
+                    (row >= 2 && row <= 3 && col === 6) || (row === 2 && col >= 5 && col <= 6) || // 玩家2
+                    (row >= 7 && row <= 8 && col === 6) || (row === 8 && col >= 5 && col <= 6) || // 玩家3
+                    (row >= 7 && row <= 8 && col === 4) || (row === 8 && col >= 4 && col <= 5)    // 玩家4
+                ) {
+                    return 'home-path';
+                }
+                
+                return 'empty';
+            }
+
+            // 获取角落区域的玩家ID
+            function getCornerPlayer(row, col) {
+                if (row <= 1 && col <= 1) return 1;
+                if (row <= 1 && col >= 9) return 2;
+                if (row >= 9 && col >= 9) return 3;
+                if (row >= 9 && col <= 1) return 4;
+                return null;
+            }
+
+            // 渲染玩家基地
+            function renderBase(cell, playerId) {
+                const base = document.createElement('div');
+                base.className = 'home-grid w-full h-full';
+                
+                for (let i = 0; i < 2; i++) {
+                    for (let j = 0; j < 2; j++) {
+                        const baseCell = document.createElement('div');
+                        baseCell.className = `border-2 border-${PLAYERS[playerId].color}/50 rounded-md flex items-center justify-center`;
+                        base.appendChild(baseCell);
+                    }
+                }
+                
+                cell.appendChild(base);
+            }
+
+            // 获取路径索引
+            function getPathIndex(row, col) {
+                // 顶部水平路径 (0-6)
+                if (row === 0 && col >= 2 && col <= 8) return col - 2;
+                
+                // 右侧垂直路径 (7-13)
+                if (col === 10 && row >= 2 && row <= 8) return row + 5;
+                
+                // 底部水平路径 (14-20)
+                if (row === 10 && col >= 2 && col <= 8) return 26 - col;
+                
+                // 左侧垂直路径 (21-27)
+                if (col === 0 && row >= 2 && row <= 8) return 33 - row;
+                
+                // 右上弯曲 (28-29)
+                if (row >= 2 && row <= 4 && col === 8) return row + 25;
+                
+                // 右下弯曲 (30-31)
+                if (row >= 6 && row <= 8 && col === 8) return 41 - row;
+                
+                // 左下弯曲 (32-33)
+                if (row >= 6 && row <= 8 && col === 2) return row + 25;
+                
+                // 左上弯曲 (34-35)
+                if (row >= 2 && row <= 4 && col === 2) return 41 - row;
+                
+                return -1;
+            }
+
+            // 获取回家路径信息
+            function getHomePathInfo(row, col) {
+                // 玩家1回家路径
+                if ((row >= 2 && row <= 3 && col === 4) || (row === 2 && col >= 4 && col <= 5)) {
+                    if (row === 2 && col === 4) return { playerId: 1, pathIndex: 0 };
+                    if (row === 2 && col === 5) return { playerId: 1, pathIndex: 1 };
+                    if (row === 3 && col === 4) return { playerId: 1, pathIndex: 2 };
+                    if (row === 4 && col === 4) return { playerId: 1, pathIndex: 3 };
+                    if (row === 5 && col === 4) return { playerId: 1, pathIndex: 4 };
+                    if (row === 6 && col === 4) return { playerId: 1, pathIndex: 5 };
+                }
+                
+                // 玩家2回家路径
+                if ((row >= 2 && row <= 3 && col === 6) || (row === 2 && col >= 5 && col <= 6)) {
+                    if (row === 2 && col === 6) return { playerId: 2, pathIndex: 0 };
+                    if (row === 2 && col === 5) return { playerId: 2, pathIndex: 1 };
+                    if (row === 3 && col === 6) return { playerId: 2, pathIndex: 2 };
+                    if (row === 4 && col === 6) return { playerId: 2, pathIndex: 3 };
+                    if (row === 5 && col === 6) return { playerId: 2, pathIndex: 4 };
+                    if (row === 6 && col === 6) return { playerId: 2, pathIndex: 5 };
+                }
+                
+                // 玩家3回家路径
+                if ((row >= 7 && row <= 8 && col === 6) || (row === 8 && col >= 5 && col <= 6)) {
+                    if (row === 8 && col === 6) return { playerId: 3, pathIndex: 0 };
+                    if (row === 8 && col === 5) return { playerId: 3, pathIndex: 1 };
+                    if (row === 7 && col === 6) return { playerId: 3, pathIndex: 2 };
+                    if (row === 6 && col === 6) return { playerId: 3, pathIndex: 3 };
+                    if (row === 5 && col === 6) return { playerId: 3, pathIndex: 4 };
+                    if (row === 4 && col === 6) return { playerId: 3, pathIndex: 5 };
+                }
+                
+                // 玩家4回家路径
+                if ((row >= 7 && row <= 8 && col === 4) || (row === 8 && col >= 4 && col <= 5)) {
+                    if (row === 8 && col === 4) return { playerId: 4, pathIndex: 0 };
+                    if (row === 8 && col === 5) return { playerId: 4, pathIndex: 1 };
+                    if (row === 7 && col === 4) return { playerId: 4, pathIndex: 2 };
+                    if (row === 6 && col === 4) return { playerId: 4, pathIndex: 3 };
+                    if (row === 5 && col === 4) return { playerId: 4, pathIndex: 4 };
+                    if (row === 4 && col === 4) return { playerId: 4, pathIndex: 5 };
+                }
+                
+                return null;
+            }
+
+            // 根据位置获取格子坐标
+            function getPositionCoordinates(playerId, position) {
+                const player = gameState.players[playerId];
+                
+                // 棋子在基地
+                if (position === -1) {
+                    for (let i = 0; i < player.pieces.length; i++) {
+                        if (player.pieces[i].position === -1) {
+                            return player.base[i];
+                        }
+                    }
+                    return player.base[0]; // 默认返回第一个基地位置
+                }
+                
+                // 棋子在主路径
+                if (position >= 0 && position < PATH_LENGTH) {
+                    // 计算主路径上的坐标
+                    // 这里需要根据路径索引映射到棋盘坐标
+                    // 简化版实现，实际需要根据getPathIndex的逆运算
+                    for (let row = 0; row < BOARD_SIZE; row++) {
+                        for (let col = 0; col < BOARD_SIZE; col++) {
+                            if (getCellType(row, col) === 'path' && getPathIndex(row, col) === position) {
+                                return [row, col];
+                            }
+                        }
+                    }
+                }
+                
+                // 棋子在回家路径
+                if (position >= PATH_LENGTH && position < PATH_LENGTH + 6) {
+                    const homePathIndex = position - PATH_LENGTH;
+                    
+                    // 根据玩家ID和回家路径索引确定坐标
+                    // 这里需要根据getHomePathInfo的逆运算
+                    if (playerId === 1) {
+                        if (homePathIndex === 0) return [2, 4];
+                        if (homePathIndex === 1) return [2, 5];
+                        if (homePathIndex === 2) return [3, 4];
+                        if (homePathIndex === 3) return [4, 4];
+                        if (homePathIndex === 4) return [5, 4];
+                        if (homePathIndex === 5) return [6, 4];
+                    } else if (playerId === 2) {
+                        if (homePathIndex === 0) return [2, 6];
+                        if (homePathIndex === 1) return [2, 5];
+                        if (homePathIndex === 2) return [3, 6];
+                        if (homePathIndex === 3) return [4, 6];
+                        if (homePathIndex === 4) return [5, 6];
+                        if (homePathIndex === 5) return [6, 6];
+                    } else if (playerId === 3) {
+                        if (homePathIndex === 0) return [8, 6];
+                        if (homePathIndex === 1) return [8, 5];
+                        if (homePathIndex === 2) return [7, 6];
+                        if (homePathIndex === 3) return [6, 6];
+                        if (homePathIndex === 4) return [5, 6];
+                        if (homePathIndex === 5) return [4, 6];
+                    } else if (playerId === 4) {
+                        if (homePathIndex === 0) return [8, 4];
+                        if (homePathIndex === 1) return [8, 5];
+                        if (homePathIndex === 2) return [7, 4];
+                        if (homePathIndex === 3) return [6, 4];
+                        if (homePathIndex === 4) return [5, 4];
+                        if (homePathIndex === 5) return [4, 4];
+                    }
+                }
+                
+                return [0, 0]; // 默认返回坐标
+            }
+
+            // 渲染棋子
+            function renderPieces() {
+                // 移除所有现有棋子
+                document.querySelectorAll('.player-piece').forEach(piece => piece.remove());
+                
+                for (let playerId in gameState.players) {
+                    const player = gameState.players[playerId];
+                    
+                    player.pieces.forEach((piece, pieceIndex) => {
+                        if (piece.position >= -1) {
+                            const [row, col] = getPositionCoordinates(playerId, piece.position);
+                            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                            
+                            if (cell) {
+                                const pieceElement = document.createElement('div');
+                                pieceElement.className = `player-piece w-5 h-5 rounded-full bg-${player.color} shadow-lg chess-shadow flex items-center justify-center text-white text-xs font-bold z-10`;
+                                pieceElement.textContent = pieceIndex + 1;
+                                pieceElement.dataset.player = playerId;
+                                pieceElement.dataset.piece = pieceIndex;
+                                
+                                // 如果是当前玩家的棋子且已经掷骰子，则添加点击事件
+                                if (parseInt(playerId) === gameState.currentPlayer && gameState.diceRolled && !player.isComputer) {
+                                    pieceElement.classList.add('cursor-pointer', 'hover:scale-110', 'transition-transform');
+                                    pieceElement.addEventListener('click', () => movePiece(playerId, pieceIndex));
+                                }
+                                
+                                cell.appendChild(pieceElement);
+                            }
+                        }
+                    });
+                }
+            }
+
+            // 渲染玩家信息
+            function renderPlayerInfo() {
+                const playerInfoContainer = document.getElementById('playerInfo');
+                playerInfoContainer.innerHTML = '';
+                
+                for (let playerId in gameState.players) {
+                    const player = gameState.players[playerId];
+                    const playerElement = document.createElement('div');
+                    playerElement.className = `flex items-center p-3 rounded-lg ${parseInt(playerId) === gameState.currentPlayer ? 'bg-primary/10 border-l-4 border-primary' : 'bg-gray-100'}`;
+                    
+                    // 玩家颜色指示器
+                    const colorIndicator = document.createElement('div');
+                    colorIndicator.className = `w-4 h-4 rounded-full bg-${player.color} mr-3`;
+                    
+                    // 玩家名称和状态
+                    const playerText = document.createElement('div');
+                    playerText.className = 'flex-1';
+                    playerText.innerHTML = `
+                        <div class="font-medium">${player.isComputer ? '电脑 ' : '你 '}(${playerId})</div>
+                        <div class="text-sm text-gray-600">
+                            基地: ${player.pieces.filter(p => p.position === -1).length}
+                            &nbsp;&nbsp;
+                            终点: ${player.pieces.filter(p => p.position >= PATH_LENGTH + 5).length}/4
+                        </div>
+                    `;
+                    
+                    playerElement.appendChild(colorIndicator);
+                    playerElement.appendChild(playerText);
+                    playerInfoContainer.appendChild(playerElement);
+                }
+            }
+
+            // 更新当前玩家
+            function updateCurrentPlayer() {
+                renderPlayerInfo();
+                
+                if (gameState.players[gameState.currentPlayer].isComputer) {
+                    showGameMessage(`电脑 ${gameState.currentPlayer} 的回合，正在思考...`);
+                    setTimeout(computerRollDice, 1500);
+                } else {
+                    showGameMessage(`你的回合，请掷骰子`);
+                }
+            }
+
+            // 掷骰子
+            function rollDice() {
+                if (!gameState.gameStarted || gameState.gameOver || gameState.diceRolled) return;
+                
+                const dice = document.getElementById('dice');
+                const diceValueDisplay = document.getElementById('diceValue');
+                
+                // 骰子动画
+                dice.classList.add('dice-rolling');
+                diceValueDisplay.textContent = '滚动中...';
+                
+                // 随机骰子值
+                setTimeout(() => {
+                    const diceValue = Math.floor(Math.random() * 6) + 1;
+                    gameState.diceValue = diceValue;
+                    gameState.diceRolled = true;
+                    
+                    dice.classList.remove('dice-rolling');
+                    diceValueDisplay.textContent = `你掷出了: ${diceValue}`;
+                    
+                    // 播放掷骰子音效（使用HTML5 Audio）
+                    const diceSound = new Audio('data:audio/wav;base64,UklGRoQFAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YY4AAAC+AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA==');
+                    diceSound.play();
+                    
+                    // 显示可以移动的棋子
+                    renderPieces();
+                    
+                    // 如果是玩家回合，显示操作提示
+                    if (!gameState.players[gameState.currentPlayer].isComputer) {
+                        // 检查是否有可移动的棋子
+                        const canMove = canMoveAnyPiece();
+                        if (!canMove) {
+                            showGameMessage(`你没有可移动的棋子，回合结束`);
+                            setTimeout(nextPlayer, 2000);
+                        } else {
+                            if (diceValue === 6) {
+                                showGameMessage(`你掷出了6点！可以移动棋子或派出新棋子`);
+                            } else {
+                                showGameMessage(`请选择一个棋子移动 ${diceValue} 步`);
+                            }
+                        }
+                    } else {
+                        // 电脑回合，自动选择最佳棋子移动
+                        setTimeout(computerMove, 1500);
+                    }
+                }, 1000);
+            }
+
+            // 电脑掷骰子
+            function computerRollDice() {
+                const dice = document.getElementById('dice');
+                const diceValueDisplay = document.getElementById('diceValue');
+                
+                // 骰子动画
+                dice.classList.add('dice-rolling');
+                diceValueDisplay.textContent = `电脑 ${gameState.currentPlayer} 正在掷骰子...`;
+                
+                // 随机骰子值
+                setTimeout(() => {
+                    const diceValue = Math.floor(Math.random() * 6) + 1;
+                    gameState.diceValue = diceValue;
+                    gameState.diceRolled = true;
+                    
+                    dice.classList.remove('dice-rolling');
+                    diceValueDisplay.textContent = `电脑 ${gameState.currentPlayer} 掷出了: ${diceValue}`;
+                    
+                    // 播放掷骰子音效
+                    const diceSound = new Audio('data:audio/wav;base64,UklGRoQFAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YY4AAAC+AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA==');
+                    diceSound.play();
+                    
+                    // 显示可以移动的棋子
+                    renderPieces();
+                    
+                    // 电脑自动选择最佳棋子移动
+                    setTimeout(computerMove, 1500);
+                }, 1000);
+            }
+
+            // 电脑移动棋子
+            function computerMove() {
+                const playerId = gameState.currentPlayer;
+                const player = gameState.players[playerId];
+                const diceValue = gameState.diceValue;
+                
+                // 电脑决策逻辑
+                // 1. 优先选择可以将棋子移出基地的6点
+                // 2. 优先选择可以吃掉玩家棋子的移动
+                // 3. 优先选择可以进入回家路径的移动
+                // 4. 优先选择可以到达终点的移动
+                // 5. 选择移动距离最远的棋子
+                
+                // 查找所有可以移动的棋子
+                const movablePieces = [];
+                player.pieces.forEach((piece, pieceIndex) => {
+                    if (canMovePiece(piece, diceValue)) {
+                        movablePieces.push(pieceIndex);
+                    }
+                });
+                
+                if (movablePieces.length === 0) {
+                    showGameMessage(`电脑 ${playerId} 没有可移动的棋子，回合结束`);
+                    setTimeout(nextPlayer, 1500);
+                    return;
+                }
+                
+                // 评估每个可移动棋子的得分
+                let bestPieceIndex = movablePieces[0];
+                let bestScore = -Infinity;
+                
+                movablePieces.forEach(pieceIndex => {
+                    const piece = player.pieces[pieceIndex];
+                    let newPosition;
+                    
+                    // 计算新位置
+                    if (piece.position === -1 && diceValue === 6) {
+                        newPosition = player.start;
+                    } else {
+                        if (piece.position >= 0 && piece.position < PATH_LENGTH) {
+                            newPosition = piece.position + diceValue;
+                            if (newPosition >= PATH_LENGTH) {
+                                newPosition = PATH_LENGTH + (newPosition - PATH_LENGTH);
+                            }
+                        } else if (piece.position >= PATH_LENGTH) {
+                            newPosition = piece.position + diceValue;
+                        }
+                    }
+                    
+                    if (newPosition > PATH_LENGTH + 5) {
+                        newPosition = PATH_LENGTH + 5;
+                    }
+                    
+                    // 评估移动的得分
+                    let score = 0;
+                    
+                    // 到达终点的得分最高
+                    if (newPosition === PATH_LENGTH + 5) {
+                        score += 100;
+                    }
+                    
+                    // 进入回家路径的得分较高
+                    if (piece.position < PATH_LENGTH && newPosition >= PATH_LENGTH) {
+                        score += 50;
+                    }
+                    
+                    // 吃掉玩家棋子的得分高
+                    if (newPosition < PATH_LENGTH && !SAFE_SPACES.includes(newPosition)) {
+                        // 检查是否可以吃掉其他玩家的棋子
+                        for (let otherPlayerId in gameState.players) {
+                            if (otherPlayerId === playerId) continue;
+                            
+                            const otherPlayer = gameState.players[otherPlayerId];
+                            
+                            otherPlayer.pieces.forEach(otherPiece => {
+                                if (otherPiece.position === newPosition && !SAFE_SPACES.includes(newPosition)) {
+                                    // 如果能吃掉玩家的棋子，得分更高
+                                    if (parseInt(otherPlayerId) === 1) {
+                                        score += 80;
+                                    } else {
+                                        score += 30;
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    
+                    // 移动距离远的得分较高
+                    score += piece.position === -1 ? 10 : newPosition - piece.position;
+                    
+                    // 如果是6点，优先选择从基地派出棋子
+                    if (piece.position === -1 && diceValue === 6) {
+                        score += 20;
+                    }
+                    
+                    // 更新最佳选择
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestPieceIndex = pieceIndex;
+                    }
+                });
+                
+                // 电脑选择移动的棋子
+                showGameMessage(`电脑 ${playerId} 选择移动棋子 ${bestPieceIndex + 1}`);
+                
+                // 延迟执行移动，增加游戏体验
+                setTimeout(() => {
+                    movePiece(playerId, bestPieceIndex);
+                }, 1500);
+            }
+
+            // 检查是否有可移动的棋子
+            function canMoveAnyPiece() {
+                const player = gameState.players[gameState.currentPlayer];
+                const diceValue = gameState.diceValue;
+                
+                // 检查是否有棋子可以从基地出发
+                if (diceValue === 6 && player.pieces.some(p => p.position === -1)) {
+                    return true;
+                }
+                
+                // 检查是否有棋子可以在路径上移动
+                return player.pieces.some(p => {
+                    if (p.position === -1) return false; // 在基地中
+                    
+                    // 在回家路径中
+                    if (p.position >= PATH_LENGTH) {
+                        const homePathIndex = p.position - PATH_LENGTH;
+                        return homePathIndex + diceValue <= 5;
+                    }
+                    
+                    // 在主路径中
+                    return true;
+                });
+            }
+
+            // 移动棋子
+            function movePiece(playerId, pieceIndex) {
+                if (parseInt(playerId) !== gameState.currentPlayer || !gameState.diceRolled) return;
+                
+                const player = gameState.players[playerId];
+                const piece = player.pieces[pieceIndex];
+                const diceValue = gameState.diceValue;
+                
+                // 检查是否可以移动
+                if (!canMovePiece(piece, diceValue)) {
+                    showGameMessage('这个棋子不能移动，请选择其他棋子');
+                    return;
+                }
+                
+                // 移动棋子
+                let newPosition;
+                
+                // 如果棋子在基地，且掷出6点，则从基地出发
+                if (piece.position === -1 && diceValue === 6) {
+                    newPosition = player.start;
+                } else {
+                    // 在主路径上移动
+                    if (piece.position >= 0 && piece.position < PATH_LENGTH) {
+                        newPosition = piece.position + diceValue;
+                        
+                        // 如果超过主路径长度，进入回家路径
+                        if (newPosition >= PATH_LENGTH) {
+                            newPosition = PATH_LENGTH + (newPosition - PATH_LENGTH);
+                        }
+                    } 
+                    // 在回家路径上移动
+                    else if (piece.position >= PATH_LENGTH) {
+                        newPosition = piece.position + diceValue;
+                    }
+                }
+                
+                // 检查是否可以移动到新位置
+                if (newPosition > PATH_LENGTH + 5) {
+                    // 移动超过终点，只能移动到终点
+                    newPosition = PATH_LENGTH + 5;
+                }
+                
+                // 记录移动前的位置
+                const oldPosition = piece.position;
+                
+                // 更新棋子位置
+                piece.position = newPosition;
+                piece.onPath = newPosition >= 0;
+                
+                // 检查是否有棋子被吃掉
+                checkAndCapturePieces(playerId, newPosition);
+                
+                // 更新UI
+                renderPieces();
+                
+                // 添加移动动画
+                const pieceElement = document.querySelector(`.player-piece[data-player="${playerId}"][data-piece="${pieceIndex}"]`);
+                if (pieceElement) {
+                    pieceElement.classList.add('jump');
+                    setTimeout(() => pieceElement.classList.remove('jump'), 300);
+                }
+                
+                // 检查游戏是否结束
+                if (checkGameOver(playerId)) {
+                    gameState.gameOver = true;
+                    showGameOverModal(playerId);
+                    return;
+                }
+                
+                // 检查是否需要再掷一次骰子（掷出6点）
+                if (diceValue === 6 && newPosition !== PATH_LENGTH + 5) {
+                    // 掷出6点且没有到达终点，继续回合
+                    gameState.diceRolled = false;
+                    
+                    if (player.isComputer) {
+                        document.getElementById('diceValue').textContent = `电脑 ${playerId} 获得额外回合，正在掷骰子...`;
+                        showGameMessage(`电脑 ${playerId} 掷出了6点！获得额外回合`);
+                        setTimeout(computerRollDice, 1500);
+                    } else {
+                        document.getElementById('diceValue').textContent = '你获得额外回合，请再次掷骰子';
+                        showGameMessage('你掷出了6点！获得额外回合');
+                    }
+                } else {
+                    // 回合结束，轮到下一个玩家
+                    setTimeout(nextPlayer, 1500);
+                }
+            }
+
+            // 检查棋子是否可以移动
+            function canMovePiece(piece, diceValue) {
+                // 如果棋子在基地，必须掷出6点才能出发
+                if (piece.position === -1) {
+                    return diceValue === 6;
+                }
+                
+                // 在回家路径中
+                if (piece.position >= PATH_LENGTH) {
+                    const homePathIndex = piece.position - PATH_LENGTH;
+                    return homePathIndex + diceValue <= 5;
+                }
+                
+                // 在主路径中
+                return true;
+            }
+
+            // 检查并吃掉其他玩家的棋子
+            function checkAndCapturePieces(playerId, position) {
+                // 如果是在回家路径或终点，不会吃掉其他棋子
+                if (position >= PATH_LENGTH) return;
+                
+                // 检查其他玩家的棋子
+                for (let otherPlayerId in gameState.players) {
+                    if (otherPlayerId === playerId) continue;
+                    
+                    const otherPlayer = gameState.players[otherPlayerId];
+                    
+                    otherPlayer.pieces.forEach((piece, pieceIndex) => {
+                        // 如果其他玩家的棋子在相同位置，且不是安全位置，则被吃掉
+                        if (piece.position === position && !SAFE_SPACES.includes(position)) {
+                            piece.position = -1;
+                            piece.onPath = false;
+                            
+                            // 更新UI
+                            renderPieces();
+                            
+                            // 显示消息
+                            const message = gameState.players[playerId].isComputer 
+                                ? `电脑 ${playerId} 吃掉了${gameState.players[otherPlayerId].isComputer ? '电脑' : '你'} ${otherPlayerId} 的棋子！` 
+                                : `你吃掉了${gameState.players[otherPlayerId].isComputer ? '电脑' : ''} ${otherPlayerId} 的棋子！`;
+                            
+                            showGameMessage(message);
+                        }
+                    });
+                }
+            }
+
+            // 检查游戏是否结束
+            function checkGameOver(playerId) {
+                const player = gameState.players[playerId];
+                return player.pieces.every(piece => piece.position >= PATH_LENGTH + 5);
+            }
+
+            // 下一个玩家
+            function nextPlayer() {
+                const playerCount = Object.keys(gameState.players).length;
+                gameState.currentPlayer = (gameState.currentPlayer % playerCount) + 1;
+                gameState.diceRolled = false;
+                
+                // 更新UI
+                document.getElementById('diceValue').textContent = gameState.players[gameState.currentPlayer].isComputer 
+                    ? `电脑 ${gameState.currentPlayer} 的回合` 
+                    : '你的回合，请掷骰子';
+                
+                updateCurrentPlayer();
+                renderPieces();
+            }
+
+            // 显示游戏消息
+            function showGameMessage(message) {
+                const gameMessage = document.getElementById('gameMessage');
+                gameMessage.textContent = message;
+                gameMessage.classList.remove('opacity-0');
+                
+                setTimeout(() => {
+                    gameMessage.classList.add('opacity-0');
+                }, 3000);
+            }
+
+            // 显示游戏结束弹窗
+            function showGameOverModal(winnerId) {
+                const modal = document.getElementById('gameOverModal');
+                const modalContent = document.getElementById('modalContent');
+                const winnerText = document.getElementById('winnerText');
+                const winnerMessage = document.getElementById('winnerMessage');
+                
+                const winnerName = gameState.players[winnerId].isComputer ? `电脑 ${winnerId}` : '你';
+                
+                winnerText.textContent = '游戏结束';
+                winnerMessage.textContent = `${winnerName} 获胜！恭喜！`;
+                
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }, 100);
+            }
+
+            // 重置游戏
+            function resetGame() {
+                gameState = {
+                    players: {},
+                    currentPlayer: 1,
+                    diceRolled: false,
+                    diceValue: 0,
+                    gameStarted: false,
+                    gameOver: false
+                };
+                
+                document.getElementById('diceValue').textContent = '点击骰子开始游戏';
+                document.getElementById('gameBoard').innerHTML = '';
+                document.getElementById('playerInfo').innerHTML = '';
+                
+                // 隐藏游戏结束弹窗
+                const modal = document.getElementById('gameOverModal');
+                const modalContent = document.getElementById('modalContent');
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                modalContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+                
+                showGameMessage('游戏已重置');
+            }
+
+            // 事件监听
+            document.getElementById('startGame').addEventListener('click', initGame);
+            document.getElementById('resetGame').addEventListener('click', resetGame);
+            document.getElementById('diceContainer').addEventListener('click', rollDice);
+            document.getElementById('playAgain').addEventListener('click', () => {
+                resetGame();
+                initGame();
+            });
+        });
+    </script>
+</body>
+</html>
+    
