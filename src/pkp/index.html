@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扑克小游戏</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E3A8A', // 深蓝色主色调，代表扑克牌
+                        secondary: '#B91C1C', // 红色辅助色，代表扑克牌中的红桃和方块
+                        neutral: '#1F2937', // 中性色
+                        card: '#F9FAFB', // 卡片背景色
+                    },
+                    fontFamily: {
+                        poker: ['Georgia', 'serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+            }
+            .card-hover {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-8px) scale(1.02);
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+            }
+            .game-card {
+                background-size: cover;
+                background-position: center;
+            }
+            .pulse-animation {
+                animation: pulse 2s infinite;
+            }
+            @keyframes pulse {
+                0%, 100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.7;
+                }
+            }
+            .deal-animation {
+                animation: deal 0.5s ease forwards;
+            }
+            @keyframes deal {
+                0% {
+                    transform: translateY(-200px) rotate(180deg);
+                    opacity: 0;
+                }
+                70% {
+                    transform: translateY(10px) rotate(5deg);
+                }
+                100% {
+                    transform: translateY(0) rotate(0);
+                    opacity: 1;
+                }
+            }
+            .shuffle-animation {
+                animation: shuffle 1s ease-in-out;
+            }
+            @keyframes shuffle {
+                0%, 100% {
+                    transform: translateX(0);
+                }
+                25% {
+                    transform: translateX(-30px) rotate(-10deg);
+                }
+                75% {
+                    transform: translateX(30px) rotate(10deg);
+                }
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-neutral to-primary min-h-screen text-white font-poker">
+    <!-- 音频播放器 - 自动播放同文件夹下的1.mp3 -->
+    <audio id="bgMusic" loop>
+        <source src="1.mp3" type="audio/mpeg">
+        您的浏览器不支持音频播放。
+    </audio>
+    
+    <!-- 主容器 -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- 头部 -->
+        <header class="text-center mb-10">
+            <h1 class="text-[clamp(2.5rem,5vw,4rem)] font-bold mb-4 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-yellow-300 to-secondary">扑克小游戏</h1>
+            <p class="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto">选择您喜欢的扑克游戏，享受游戏乐趣！</p>
+            
+            <!-- 音量控制 -->
+            <div class="flex justify-center items-center mt-6 space-x-4">
+                <button id="playMusic" class="bg-primary/80 hover:bg-primary text-white rounded-full p-3 transition-all duration-300">
+                    <i class="fa fa-play"></i>
+                </button>
+                <button id="pauseMusic" class="bg-primary/80 hover:bg-primary text-white rounded-full p-3 transition-all duration-300">
+                    <i class="fa fa-pause"></i>
+                </button>
+                <div class="relative w-32">
+                    <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5" 
+                        class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+        </header>
+        
+        <!-- 游戏选择区域 -->
+        <section id="gameSelection" class="mb-16">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 21点游戏卡片 -->
+                <div class="game-card bg-neutral rounded-2xl overflow-hidden card-shadow card-hover">
+                    <div class="h-48 bg-gradient-to-b from-primary/60 to-primary flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-7xl mb-2 pulse-animation">
+                                <span class="text-secondary">2</span><span class="text-white">1</span>
+                            </div>
+                            <h3 class="text-2xl font-bold">二十一点</h3>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-card text-neutral">
+                        <p class="mb-4">目标是让手中牌的点数之和接近但不超过21点，比庄家更接近者获胜。</p>
+                        <button onclick="startGame('blackjack')" class="w-full bg-primary hover:bg-primary/80 text-white py-3 rounded-lg transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-play-circle mr-2"></i> 开始游戏
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 斗地主游戏卡片 -->
+                <div class="game-card bg-neutral rounded-2xl overflow-hidden card-shadow card-hover">
+                    <div class="h-48 bg-gradient-to-b from-secondary/60 to-secondary flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-7xl mb-2 pulse-animation">
+                                <i class="fa fa-users"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold">斗地主</h3>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-card text-neutral">
+                        <p class="mb-4">经典中国扑克游戏，玩家需要通过出牌策略击败对手。</p>
+                        <button onclick="startGame('landlord')" class="w-full bg-secondary hover:bg-secondary/80 text-white py-3 rounded-lg transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-play-circle mr-2"></i> 开始游戏
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 比大小游戏卡片 -->
+                <div class="game-card bg-neutral rounded-2xl overflow-hidden card-shadow card-hover">
+                    <div class="h-48 bg-gradient-to-b from-yellow-600/60 to-yellow-600 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-7xl mb-2 pulse-animation">
+                                <i class="fa fa-trophy"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold">扑克牌比大小</h3>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-card text-neutral">
+                        <p class="mb-4">简单直接的比牌游戏，牌面大的玩家获胜。</p>
+                        <button onclick="startGame('highcard')" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-play-circle mr-2"></i> 开始游戏
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 游戏区域 - 默认隐藏 -->
+        <section id="gameArea" class="hidden mb-16">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="gameTitle" class="text-3xl font-bold"></h2>
+                <button id="backToSelection" class="bg-neutral hover:bg-neutral/80 text-white px-4 py-2 rounded-lg transition-all duration-300">
+                    <i class="fa fa-arrow-left mr-2"></i> 返回游戏选择
+                </button>
+            </div>
+            
+            <div id="gameContent" class="bg-neutral/50 rounded-2xl p-6 min-h-[500px] flex flex-col items-center justify-center">
+                <!-- 游戏内容将在这里动态生成 -->
+                <div id="loadingGame" class="text-center">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mb-4"></div>
+                    <p class="text-xl">正在加载游戏...</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 页脚 -->
+        <footer class="text-center text-gray-400 mt-auto py-6">
+            <p>© 2025 扑克小游戏 | 尽情享受游戏乐趣</p>
+            <div class="mt-4 flex justify-center space-x-4">
+                <a href="#" class="hover:text-white transition-colors duration-300"><i class="fa fa-question-circle"></i> 帮助</a>
+                <a href="#" class="hover:text-white transition-colors duration-300"><i class="fa fa-info-circle"></i> 关于</a>
+                <a href="#" class="hover:text-white transition-colors duration-300"><i class="fa fa-star"></i> 评分</a>
+            </div>
+        </footer>
+    </div>
+    
+    <script>
+        // 音频控制
+        const bgMusic = document.getElementById('bgMusic');
+        const playMusicBtn = document.getElementById('playMusic');
+        const pauseMusicBtn = document.getElementById('pauseMusic');
+        const volumeControl = document.getElementById('volumeControl');
+        
+        // 尝试自动播放音乐
+        document.addEventListener('DOMContentLoaded', () => {
+            bgMusic.volume = volumeControl.value;
+            bgMusic.play().catch(e => {
+                console.log('自动播放失败:', e);
+                // 用户交互后才能播放
+                document.addEventListener('click', function enablePlay() {
+                    bgMusic.play().catch(e => console.log('播放仍被阻止:', e));
+                    document.removeEventListener('click', enablePlay);
+                });
+            });
+        });
+        
+        // 音乐控制事件
+        playMusicBtn.addEventListener('click', () => {
+            bgMusic.play();
+        });
+        
+        pauseMusicBtn.addEventListener('click', () => {
+            bgMusic.pause();
+        });
+        
+        volumeControl.addEventListener('input', () => {
+            bgMusic.volume = volumeControl.value;
+        });
+        
+        // 游戏逻辑
+        const gameSelection = document.getElementById('gameSelection');
+        const gameArea = document.getElementById('gameArea');
+        const gameTitle = document.getElementById('gameTitle');
+        const gameContent = document.getElementById('gameContent');
+        const backToSelection = document.getElementById('backToSelection');
+        
+        // 游戏数据
+        const suits = ['♥', '♦', '♣', '♠'];
+        const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        const suitColors = { '♥': 'red', '♦': 'red', '♣': 'black', '♠': 'black' };
+        
+        // 创建一副扑克牌
+        function createDeck() {
+            const deck = [];
+            for (const suit of suits) {
+                for (const rank of ranks) {
+                    deck.push({ suit, rank, value: getCardValue(rank) });
+                }
+            }
+            return deck;
+        }
+        
+        // 获取牌面数值
+        function getCardValue(rank) {
+            if (rank === 'A') return 11; // 在21点中A可以是1或11，这里简化为11
+            if (['K', 'Q', 'J'].includes(rank)) return 10;
+            return parseInt(rank);
+        }
+        
+        // 洗牌函数
+        function shuffleDeck(deck) {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            return deck;
+        }
+        
+        // 开始游戏
+        function startGame(gameType) {
+            gameSelection.classList.add('hidden');
+            gameArea.classList.remove('hidden');
+            
+            // 设置游戏标题
+            const gameTitles = {
+                'blackjack': '二十一点',
+                'landlord': '斗地主',
+                'highcard': '扑克牌比大小'
+            };
+            gameTitle.textContent = gameTitles[gameType] || '游戏';
+            
+            // 显示加载中
+            gameContent.innerHTML = `
+                <div id="loadingGame" class="text-center">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mb-4"></div>
+                    <p class="text-xl">正在加载游戏...</p>
+                </div>
+            `;
+            
+            // 模拟加载延迟
+            setTimeout(() => {
+                // 根据游戏类型加载不同的游戏内容
+                if (gameType === 'blackjack') {
+                    loadBlackjackGame();
+                } else if (gameType === 'landlord') {
+                    loadLandlordGame();
+                } else if (gameType === 'highcard') {
+                    loadHighCardGame();
+                }
+            }, 1000);
+        }
+        
+        // 返回游戏选择
+        backToSelection.addEventListener('click', () => {
+            gameArea.classList.add('hidden');
+            gameSelection.classList.remove('hidden');
+        });
+        
+        // 加载21点游戏
+        function loadBlackjackGame() {
+            gameContent.innerHTML = `
+                <div class="w-full">
+                    <div class="mb-6 text-center">
+                        <h3 class="text-2xl mb-2">二十一点</h3>
+                        <p>目标：使手中的牌点数之和尽可能接近21点，但不超过21点。</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- 庄家区域 -->
+                        <div class="bg-neutral/30 rounded-xl p-4">
+                            <h4 class="text-xl font-bold mb-3">庄家</h4>
+                            <div id="dealerCards" class="flex flex-wrap gap-2 min-h-[160px] mb-4">
+                                <!-- 庄家牌将在这里动态生成 -->
+                                <div class="card-back deal-animation bg-white rounded-lg w-20 h-28 flex items-center justify-center text-4xl">
+                                    <i class="fa fa-question"></i>
+                                </div>
+                            </div>
+                            <p id="dealerPoints" class="text-lg">点数：?</p>
+                        </div>
+                        
+                        <!-- 玩家区域 -->
+                        <div class="bg-neutral/30 rounded-xl p-4">
+                            <h4 class="text-xl font-bold mb-3">玩家</h4>
+                            <div id="playerCards" class="flex flex-wrap gap-2 min-h-[160px] mb-4">
+                                <!-- 玩家牌将在这里动态生成 -->
+                            </div>
+                            <p id="playerPoints" class="text-lg">点数：0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center space-x-4">
+                        <button id="hitBtn" class="bg-primary hover:bg-primary/80 text-white px-6 py-3 rounded-lg transition-all duration-300">
+                            <i class="fa fa-plus mr-2"></i> 要牌
+                        </button>
+                        <button id="standBtn" class="bg-secondary hover:bg-secondary/80 text-white px-6 py-3 rounded-lg transition-all duration-300">
+                            <i class="fa fa-hand-paper-o mr-2"></i> 停牌
+                        </button>
+                        <button id="newGameBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg transition-all duration-300">
+                            <i class="fa fa-refresh mr-2"></i> 新游戏
+                        </button>
+                    </div>
+                    
+                    <div id="gameMessage" class="mt-6 text-center text-xl font-bold"></div>
+                </div>
+            `;
+            
+            // 21点游戏逻辑
+            let blackjackDeck = [];
+            let playerHand = [];
+            let dealerHand = [];
+            let gameActive = false;
+            
+            const hitBtn = document.getElementById('hitBtn');
+            const standBtn = document.getElementById('standBtn');
+            const newGameBtn = document.getElementById('newGameBtn');
+            const playerCards = document.getElementById('playerCards');
+            const dealerCards = document.getElementById('dealerCards');
+            const playerPoints = document.getElementById('playerPoints');
+            const dealerPoints = document.getElementById('dealerPoints');
+            const gameMessage = document.getElementById('gameMessage');
+            
+            // 初始化游戏
+            function initBlackjackGame() {
+                blackjackDeck = shuffleDeck(createDeck());
+                playerHand = [];
+                dealerHand = [];
+                gameActive = true;
+                gameMessage.textContent = '';
+                
+                // 发牌
+                dealInitialCards();
+                
+                // 更新显示
+                updateBlackjackDisplay();
+                
+                // 检查是否一开始就21点
+                checkBlackjack();
+            }
+            
+            // 发初始牌
+            function dealInitialCards() {
+                // 玩家两张牌
+                playerHand.push(blackjackDeck.pop());
+                playerHand.push(blackjackDeck.pop());
+                
+                // 庄家两张牌（一张明牌，一张暗牌）
+                dealerHand.push(blackjackDeck.pop());
+                dealerHand.push(blackjackDeck.pop());
+            }
+            
+            // 更新显示
+            function updateBlackjackDisplay() {
+                // 更新玩家牌
+                playerCards.innerHTML = '';
+                playerHand.forEach((card, index) => {
+                    const cardElement = createCardElement(card, index);
+                    playerCards.appendChild(cardElement);
+                });
+                
+                // 更新庄家牌
+                dealerCards.innerHTML = '';
+                dealerHand.forEach((card, index) => {
+                    if (index === 0 && !gameActive) {
+                        // 游戏结束后显示庄家所有牌
+                        const cardElement = createCardElement(card, index);
+                        dealerCards.appendChild(cardElement);
+                    } else if (index === 0) {
+                        // 游戏进行中，庄家第一张牌隐藏
+                        const cardBack = document.createElement('div');
+                        cardBack.className = 'card-back bg-white rounded-lg w-20 h-28 flex items-center justify-center text-4xl deal-animation';
+                        cardBack.innerHTML = '<i class="fa fa-question"></i>';
+                        dealerCards.appendChild(cardBack);
+                    } else {
+                        const cardElement = createCardElement(card, index);
+                        dealerCards.appendChild(cardElement);
+                    }
+                });
+                
+                // 更新点数
+                playerPoints.textContent = `点数：${calculatePoints(playerHand)}`;
+                if (!gameActive) {
+                    dealerPoints.textContent = `点数：${calculatePoints(dealerHand)}`;
+                } else {
+                    dealerPoints.textContent = '点数：?';
+                }
+            }
+            
+            // 创建扑克牌元素
+            function createCardElement(card, index) {
+                const cardElement = document.createElement('div');
+                cardElement.className = `bg-white rounded-lg w-20 h-28 flex flex-col items-center justify-center text-3xl font-bold deal-animation`;
+                cardElement.style.animationDelay = `${index * 0.1}s`;
+                cardElement.style.color = suitColors[card.suit];
+                
+                const topCorner = document.createElement('div');
+                topCorner.className = 'self-start ml-2 text-lg';
+                topCorner.textContent = `${card.rank}${card.suit}`;
+                
+                const middle = document.createElement('div');
+                middle.textContent = card.suit;
+                
+                const bottomCorner = document.createElement('div');
+                bottomCorner.className = 'self-end mr-2 text-lg';
+                bottomCorner.textContent = `${card.rank}${card.suit}`;
+                
+                cardElement.appendChild(topCorner);
+                cardElement.appendChild(middle);
+                cardElement.appendChild(bottomCorner);
+                
+                return cardElement;
+            }
+            
+            // 计算手牌点数
+            function calculatePoints(hand) {
+                let points = 0;
+                let aces = 0;
+                
+                for (const card of hand) {
+                    points += card.value;
+                    if (card.rank === 'A') aces++;
+                }
+                
+                // 处理A的点数（可以是1或11）
+                while (points > 21 && aces > 0) {
+                    points -= 10;
+                    aces--;
+                }
+                
+                return points;
+            }
+            
+            // 检查是否21点或爆牌
+            function checkBlackjack() {
+                const playerPoints = calculatePoints(playerHand);
+                const dealerPoints = calculatePoints(dealerHand);
+                
+                if (playerPoints === 21) {
+                    if (dealerPoints === 21) {
+                        endGame("平局！双方都是21点");
+                    } else {
+                        endGame("玩家获得21点，胜利！");
+                    }
+                    return true;
+                }
+                
+                if (playerPoints > 21) {
+                    endGame("玩家爆牌，输了！");
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            // 玩家要牌
+            function hit() {
+                if (!gameActive) return;
+                
+                playerHand.push(blackjackDeck.pop());
+                updateBlackjackDisplay();
+                
+                if (checkBlackjack()) {
+                    gameActive = false;
+                }
+            }
+            
+            // 玩家停牌
+            function stand() {
+                if (!gameActive) return;
+                
+                gameActive = false;
+                
+                // 庄家打牌逻辑
+                const dealerPointsValue = calculatePoints(dealerHand);
+                
+                // 显示庄家所有牌
+                updateBlackjackDisplay();
+                
+                // 庄家必须拿到17点或以上
+                while (dealerPointsValue < 17) {
+                    dealerHand.push(blackjackDeck.pop());
+                    updateBlackjackDisplay();
+                }
+                
+                // 判定胜负
+                const finalPlayerPoints = calculatePoints(playerHand);
+                const finalDealerPoints = calculatePoints(dealerHand);
+                
+                let message = "";
+                
+                if (finalDealerPoints > 21) {
+                    message = "庄家爆牌，玩家胜利！";
+                } else if (finalPlayerPoints > finalDealerPoints) {
+                    message = "玩家点数更高，胜利！";
+                } else if (finalPlayerPoints < finalDealerPoints) {
+                    message = "庄家点数更高，玩家输了！";
+                } else {
+                    message = "平局！";
+                }
+                
+                endGame(message);
+            }
+            
+            // 游戏结束
+            function endGame(message) {
+                gameActive = false;
+                gameMessage.textContent = message;
+                
+                // 禁用按钮
+                hitBtn.disabled = true;
+                standBtn.disabled = true;
+                hitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                standBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+            
+            // 事件监听
+            hitBtn.addEventListener('click', hit);
+            standBtn.addEventListener('click', stand);
+            newGameBtn.addEventListener('click', initBlackjackGame);
+            
+            // 开始新游戏
+            initBlackjackGame();
+        }
+        
+        // 加载斗地主游戏
+        function loadLandlordGame() {
+            gameContent.innerHTML = `
+                <div class="w-full">
+                    <div class="mb-6 text-center">
+                        <h3 class="text-2xl mb-2">斗地主</h3>
+                        <p>经典中国扑克游戏，玩家需要通过出牌策略击败对手。</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-6 mb-8">
+                        <!-- 电脑玩家区域 -->
+                        <div class="bg-neutral/30 rounded-xl p-4">
+                            <h4 class="text-xl font-bold mb-3">电脑玩家</h4>
+                            <div id="computerCards" class="flex flex-wrap justify-center gap-1 min-h-[100px]">
+                                <!-- 电脑牌将在这里动态生成 -->
+                                ${Array(17).fill().map((_, i) => `
+                                    <div class="bg-white rounded-lg w-10 h-14 flex items-center justify-center text-lg card-back">
+                                        <i class="fa fa-question"></i>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <p id="computerCardCount" class="text-lg">剩余牌：17</p>
+                        </div>
+                        
+                        <!-- 桌面区域 -->
+                        <div class="bg-green-800/50 rounded-xl p-4 min-h-[200px] flex flex-col items-center justify-center">
+                            <h4 class="text-xl font-bold mb-3">桌面</h4>
+                            <div id="tableCards" class="flex flex-wrap justify-center gap-2 min-h-[100px]">
+                                <!-- 桌面上的牌将在这里动态生成 -->
+                            </div>
+                            <div id="turnIndicator" class="mt-4 text-lg font-bold"></div>
+                        </div>
+                        
+                        <!-- 玩家区域 -->
+                        <div class="bg-neutral/30 rounded-xl p-4">
+                            <h4 class="text-xl font-bold mb-3">玩家</h4>
+                            <div id="playerLandlordCards" class="flex flex-wrap justify-center gap-1 min-h-[100px] mb-4">
+                                <!-- 玩家牌将在这里动态生成 -->
+                            </div>
+                            <p id="playerCardCount" class="text-lg">剩余牌：17</p>
+                            
+                            <div class="flex justify-center space-x-4 mt-6">
+                                <button id="playCardBtn" class="bg-primary hover:bg-primary/80 text-white px-6 py-3 rounded-lg transition-all duration-300">
+                                    <i class="fa fa-play mr-2"></i> 出牌
+                                </button>
+                                <button id="passBtn" class="bg-secondary hover:bg-secondary/80 text-white px-6 py-3 rounded-lg transition-all duration-300">
+                                    <i class="fa fa-hand-paper-o mr-2"></i> 不要
+                                </button>
+                                <button id="callLandlordBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg transition-all duration-300">
+                                    <i class="fa fa-user mr-2"></i> 叫地主
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="landlordMessage" class="mt-6 text-center text-xl font-bold"></div>
+                </div>
+            `;
+            
+            // 斗地主游戏逻辑（简化版）
+            let landlordDeck = [];
+            let playerHand = [];
+            let computerHand = [];
+            let tableCards = [];
+            let isPlayerTurn = false;
+            let isLandlordSelected = false;
+            let landlord = null; // 0 表示玩家是地主，1 表示电脑是地主
+            
+            const playerLandlordCards = document.getElementById('playerLandlordCards');
+            const computerCards = document.getElementById('computerCards');
+            const tableCardsElement = document.getElementById('tableCards');
+            const playerCardCount = document.getElementById('playerCardCount');
+            const computerCardCount = document.getElementById('computerCardCount');
+            const turnIndicator = document.getElementById('turnIndicator');
+            const playCardBtn = document.getElementById('playCardBtn');
+            const passBtn = document.getElementById('passBtn');
+            const callLandlordBtn = document.getElementById('callLandlordBtn');
+            const landlordMessage = document.getElementById('landlordMessage');
+            
+            // 初始化游戏
+            function initLandlordGame() {
+                landlordDeck = shuffleDeck(createDeck());
+                playerHand = [];
+                computerHand = [];
+                tableCards = [];
+                isPlayerTurn = true;
+                isLandlordSelected = false;
+                landlord = null;
+                
+                // 发牌
+                dealLandlordCards();
+                
+                // 更新显示
+                updateLandlordDisplay();
+                
+                // 开始叫地主阶段
+                landlordMessage.textContent = "请选择是否叫地主";
+                turnIndicator.textContent = "玩家回合";
+                
+                // 禁用出牌和不要按钮
+                playCardBtn.disabled = true;
+                passBtn.disabled = true;
+                playCardBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                passBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+            
+            // 发牌
+            function dealLandlordCards() {
+                // 轮流发牌，每人17张
+                for (let i = 0; i < 17; i++) {
+                    playerHand.push(landlordDeck.pop());
+                    computerHand.push(landlordDeck.pop());
+                }
+                
+                // 剩下3张是底牌
+                // 在实际游戏中，这3张牌会给地主
+            }
+            
+            // 更新显示
+            function updateLandlordDisplay() {
+                // 更新玩家牌
+                playerLandlordCards.innerHTML = '';
+                playerHand.forEach((card, index) => {
+                    const cardElement = document.createElement('div');
+                    cardElement.className = `bg-white rounded-lg w-14 h-20 flex flex-col items-center justify-center text-2xl font-bold cursor-pointer hover:translate-y-[-8px] transition-transform duration-300`;
+                    cardElement.style.color = suitColors[card.suit];
+                    cardElement.dataset.index = index;
+                    
+                    const topCorner = document.createElement('div');
+                    topCorner.className = 'self-start ml-1 text-base';
+                    topCorner.textContent = `${card.rank}${card.suit}`;
+                    
+                    const middle = document.createElement('div');
+                    middle.textContent = card.suit;
+                    
+                    const bottomCorner = document.createElement('div');
+                    bottomCorner.className = 'self-end mr-1 text-base';
+                    bottomCorner.textContent = `${card.rank}${card.suit}`;
+                    
+                    cardElement.appendChild(topCorner);
+                    cardElement.appendChild(middle);
+                    cardElement.appendChild(bottomCorner);
+                    
+                    // 添加点击选择牌的事件
+                    cardElement.addEventListener('click', () => {
+                        if (isPlayerTurn && isLandlordSelected) {
+                            cardElement.classList.toggle('bg-yellow-200');
+                        }
+                    });
+                    
+                    playerLandlordCards.appendChild(cardElement);
+                });
+                
+                // 更新电脑牌
+                computerCards.innerHTML = '';
+                computerHand.forEach(() => {
+                    const cardBack = document.createElement('div');
+                    cardBack.className = 'bg-white rounded-lg w-10 h-14 flex items-center justify-center text-lg card-back';
+                    cardBack.innerHTML = '<i class="fa fa-question"></i>';
+                    computerCards.appendChild(cardBack);
+                });
+                
+                // 更新牌数
+                playerCardCount.textContent = `剩余牌：${playerHand.length}`;
+                computerCardCount.textContent = `剩余牌：${computerHand.length}`;
+                
+                // 更新桌面牌
+                tableCardsElement.innerHTML = '';
+                tableCards.forEach((card, index) => {
+                    const cardElement = document.createElement('div');
+                    cardElement.className = `bg-white rounded-lg w-14 h-20 flex flex-col items-center justify-center text-2xl font-bold deal-animation`;
+                    cardElement.style.color = suitColors[card.suit];
+                    cardElement.style.animationDelay = `${index * 0.1}s`;
+                    
+                    const topCorner = document.createElement('div');
+                    topCorner.className = 'self-start ml-1 text-base';
+                    topCorner.textContent = `${card.rank}${card.suit}`;
+                    
+                    const middle = document.createElement('div');
+                    middle.textContent = card.suit;
+                    
+                    const bottomCorner = document.createElement('div');
+                    bottomCorner.className = 'self-end mr-1 text-base';
+                    bottomCorner.textContent = `${card.rank}${card.suit}`;
+                    
+                    cardElement.appendChild(topCorner);
+                    cardElement.appendChild(middle);
+                    cardElement.appendChild(bottomCorner);
+                    
+                    tableCardsElement.appendChild(cardElement);
+                });
+                
+                // 更新回合指示器
+                if (isPlayerTurn && isLandlordSelected) {
+                    turnIndicator.textContent = "玩家回合";
+                } else if (isLandlordSelected) {
+                    turnIndicator.textContent = "电脑回合";
+                }
+            }
+            
+            // 叫地主
+            function callLandlord() {
+                if (isLandlordSelected) return;
+                
+                landlord = 0; // 玩家是地主
+                isLandlordSelected = true;
+                landlordMessage.textContent = "玩家成为地主！";
+                
+                // 启用出牌和不要按钮
+                playCardBtn.disabled = false;
+                passBtn.disabled = false;
+                playCardBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                passBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                // 禁用叫地主按钮
+                callLandlordBtn.disabled = true;
+                callLandlordBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                // 更新显示
+                updateLandlordDisplay();
+            }
+            
+            // 不叫地主
+            function notCallLandlord() {
+                if (isLandlordSelected) return;
+                
+                landlord = 1; // 电脑是地主
+                isLandlordSelected = true;
+                landlordMessage.textContent = "电脑成为地主！";
+                
+                // 启用出牌和不要按钮
+                playCardBtn.disabled = false;
+                passBtn.disabled = false;
+                playCardBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                passBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                // 禁用叫地主按钮
+                callLandlordBtn.disabled = true;
+                callLandlordBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                // 电脑先出牌
+                isPlayerTurn = false;
+                computerPlay();
+                
+                // 更新显示
+                updateLandlordDisplay();
+            }
+            
+            // 玩家出牌
+            function playSelectedCards() {
+                if (!isPlayerTurn || !isLandlordSelected) return;
+                
+                // 获取选中的牌
+                const selectedCards = Array.from(playerLandlordCards.querySelectorAll('.bg-yellow-200'))
+                    .map(card => parseInt(card.dataset.index))
+                    .sort((a, b) => b - a); // 从后往前删除，避免索引变化
+                
+                if (selectedCards.length === 0) {
+                    landlordMessage.textContent = "请选择要出的牌！";
+                    return;
+                }
+                
+                // 从手牌中移除选中的牌并添加到桌面
+                const playedCards = [];
+                selectedCards.forEach(index => {
+                    playedCards.push(playerHand[index]);
+                    playerHand.splice(index, 1);
+                });
+                
+                tableCards = playedCards;
+                
+                // 更新显示
+                updateLandlordDisplay();
+                
+                // 检查玩家是否出完牌
+                if (playerHand.length === 0) {
+                    landlordMessage.textContent = "玩家获胜！";
+                    playCardBtn.disabled = true;
+                    passBtn.disabled = true;
+                    playCardBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    passBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    return;
+                }
+                
+                // 轮到电脑
+                isPlayerTurn = false;
+                landlordMessage.textContent = "电脑出牌中...";
+                
+                // 延迟电脑出牌，模拟思考
+                setTimeout(computerPlay, 1500);
+            }
+            
+            // 玩家不要
+            function pass() {
+                if (!isPlayerTurn || !isLandlordSelected) return;
+                
+                landlordMessage.textContent = "玩家不要";
+                
+                // 轮到电脑
+                isPlayerTurn = false;
+                
+                // 延迟电脑出牌，模拟思考
+                setTimeout(computerPlay, 1500);
+            }
+            
+            // 电脑出牌（简化逻辑）
+            function computerPlay() {
+                if (isPlayerTurn || !isLandlordSelected) return;
+                
+                // 简单逻辑：随机出一张牌
+                if (tableCards.length === 0 || Math.random() > 0.5) {
+                    // 出牌
+                    const randomIndex = Math.floor(Math.random() * computerHand.length);
+                    const playedCard = computerHand.splice(randomIndex, 1)[0];
+                    tableCards = [playedCard];
+                    
+                    landlordMessage.textContent = "电脑出牌";
+                } else {
+                    // 不要
+                    landlordMessage.textContent = "电脑不要";
+                }
+                
+                // 更新显示
+                updateLandlordDisplay();
+                
+                // 检查电脑是否出完牌
+                if (computerHand.length === 0) {
+                    landlordMessage.textContent = "电脑获胜！";
+                    playCardBtn.disabled = true;
+                    passBtn.disabled = true;
+                    playCardBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    passBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    return;
+                }
+                
+                // 轮到玩家
+                isPlayerTurn = true;
+                landlordMessage.textContent = "玩家回合";
+            }
+            
+            // 事件监听
+            playCardBtn.addEventListener('click', playSelectedCards);
+            passBtn.addEventListener('click', pass);
+            callLandlordBtn.addEventListener('click', callLandlord);
+            
+            // 右键不叫地主
+            callLandlordBtn.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                notCallLandlord();
+            });
+            
+            // 开始新游戏
+            initLandlordGame();
+        }
+        
+        // 加载比大小游戏
+        function loadHighCardGame() {
+            gameContent.innerHTML = `
+                <div class="w-full">
+                    <div class="mb-6 text-center">
+                        <h3 class="text-2xl mb-2">扑克牌比大小</h3>
+                        <p>简单直接的比牌游戏，牌面大的玩家获胜。</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- 玩家1区域 -->
+                        <div class="bg-neutral/30 rounded-xl p-4">
+                            <h4 class="text-xl font-bold mb-3">玩家</h4>
+                            <div id="playerHighCard" class="flex justify-center min-h-[160px] mb-4">
+                                <!-- 玩家牌将在这里动态生成 -->
+                                <div class="card-back bg-white rounded-lg w-20 h-28 flex items-center justify-center text-4xl">
+                                    <i class="fa fa-question"></i>
+                                </div>
+                            </div>
+                            <p id="playerHighCardText" class="text-lg">未出牌</p>
+                        </div>
+                        
+                        <!-- 玩家2区域 -->
+                        <div class="bg-neutral/30 rounded-xl p-4">
+                            <h4 class="text-xl font-bold mb-3">电脑</h4>
+                            <div id="computerHighCard" class="flex justify-center min-h-[160px] mb-4">
+                                <!-- 电脑牌将在这里动态生成 -->
+                                <div class="card-back bg-white rounded-lg w-20 h-28 flex items-center justify-center text-4xl">
+                                    <i class="fa fa-question"></i>
+                                </div>
+                            </div>
+                            <p id="computerHighCardText" class="text-lg">未出牌</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center space-x-4">
+                        <button id="playHighCardBtn" class="bg-primary hover:bg-primary/80 text-white px-6 py-3 rounded-lg transition-all duration-300">
+                            <i class="fa fa-play-circle mr-2"></i> 出牌
+                        </button>
+                        <button id="newHighCardGameBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg transition-all duration-300">
+                            <i class="fa fa-refresh mr-2"></i> 新游戏
+                        </button>
+                    </div>
+                    
+                    <div id="highCardMessage" class="mt-6 text-center text-xl font-bold"></div>
+                </div>
+            `;
+            
+            // 比大小游戏逻辑
+            let highCardDeck = [];
+            let playerHighCard = null;
+            let computerHighCard = null;
+            let gameHighCardActive = false;
+            
+            const playHighCardBtn = document.getElementById('playHighCardBtn');
+            const newHighCardGameBtn = document.getElementById('newHighCardGameBtn');
+            const playerHighCardElement = document.getElementById('playerHighCard');
+            const computerHighCardElement = document.getElementById('computerHighCard');
+            const playerHighCardText = document.getElementById('playerHighCardText');
+            const computerHighCardText = document.getElementById('computerHighCardText');
+            const highCardMessage = document.getElementById('highCardMessage');
+            
+            // 初始化游戏
+            function initHighCardGame() {
+                highCardDeck = shuffleDeck(createDeck());
+                playerHighCard = null;
+                computerHighCard = null;
+                gameHighCardActive = true;
+                highCardMessage.textContent = '';
+                
+                // 重置显示
+                playerHighCardElement.innerHTML = `
+                    <div class="card-back bg-white rounded-lg w-20 h-28 flex items-center justify-center text-4xl deal-animation">
+                        <i class="fa fa-question"></i>
+                    </div>
+                `;
+                computerHighCardElement.innerHTML = `
+                    <div class="card-back bg-white rounded-lg w-20 h-28 flex items-center justify-center text-4xl deal-animation">
+                        <i class="fa fa-question"></i>
+                    </div>
+                `;
+                playerHighCardText.textContent = "未出牌";
+                computerHighCardText.textContent = "未出牌";
+                
+                // 启用按钮
+                playHighCardBtn.disabled = false;
+                playHighCardBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
+            // 出牌
+            function playHighCards() {
+                if (!gameHighCardActive || playerHighCard || computerHighCard) return;
+                
+                // 玩家和电脑各抽一张牌
+                playerHighCard = highCardDeck.pop();
+                computerHighCard = highCardDeck.pop();
+                
+                // 显示玩家的牌
+                playerHighCardElement.innerHTML = '';
+                const playerCardElement = createHighCardElement(playerHighCard);
+                playerHighCardElement.appendChild(playerCardElement);
+                playerHighCardText.textContent = `${playerHighCard.rank}${playerHighCard.suit}`;
+                
+                // 延迟显示电脑的牌，增加悬念
+                setTimeout(() => {
+                    computerHighCardElement.innerHTML = '';
+                    const computerCardElement = createHighCardElement(computerHighCard);
+                    computerHighCardElement.appendChild(computerCardElement);
+                    computerHighCardText.textContent = `${computerHighCard.rank}${computerHighCard.suit}`;
+                    
+                    // 判断胜负
+                    determineHighCardWinner();
+                }, 1000);
+            }
+            
+            // 创建扑克牌元素
+            function createHighCardElement(card) {
+                const cardElement = document.createElement('div');
+                cardElement.className = `bg-white rounded-lg w-20 h-28 flex flex-col items-center justify-center text-3xl font-bold deal-animation`;
+                cardElement.style.color = suitColors[card.suit];
+                
+                const topCorner = document.createElement('div');
+                topCorner.className = 'self-start ml-2 text-lg';
+                topCorner.textContent = `${card.rank}${card.suit}`;
+                
+                const middle = document.createElement('div');
+                middle.textContent = card.suit;
+                
+                const bottomCorner = document.createElement('div');
+                bottomCorner.className = 'self-end mr-2 text-lg';
+                bottomCorner.textContent = `${card.rank}${card.suit}`;
+                
+                cardElement.appendChild(topCorner);
+                cardElement.appendChild(middle);
+                cardElement.appendChild(bottomCorner);
+                
+                return cardElement;
+            }
+            
+            // 判断胜负
+            function determineHighCardWinner() {
+                const playerValue = getHighCardValue(playerHighCard.rank);
+                const computerValue = getHighCardValue(computerHighCard.rank);
+                
+                let message = "";
+                
+                if (playerValue > computerValue) {
+                    message = "玩家获胜！";
+                    playerHighCardElement.querySelector('div').classList.add('border-4', 'border-green-500');
+                } else if (playerValue < computerValue) {
+                    message = "电脑获胜！";
+                    computerHighCardElement.querySelector('div').classList.add('border-4', 'border-green-500');
+                } else {
+                    // 比较花色
+                    const playerSuitValue = suits.indexOf(playerHighCard.suit);
+                    const computerSuitValue = suits.indexOf(computerHighCard.suit);
+                    
+                    if (playerSuitValue > computerSuitValue) {
+                        message = "玩家获胜！";
+                        playerHighCardElement.querySelector('div').classList.add('border-4', 'border-green-500');
+                    } else {
+                        message = "电脑获胜！";
+                        computerHighCardElement.querySelector('div').classList.add('border-4', 'border-green-500');
+                    }
+                }
+                
+                highCardMessage.textContent = message;
+                gameHighCardActive = false;
+                
+                // 禁用按钮
+                playHighCardBtn.disabled = true;
+                playHighCardBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+            
+            // 获取牌面数值（用于比大小）
+            function getHighCardValue(rank) {
+                const values = { 'A': 14, 'K': 13, 'Q': 12, 'J': 11 };
+                return values[rank] || parseInt(rank);
+            }
+            
+            // 事件监听
+            playHighCardBtn.addEventListener('click', playHighCards);
+            newHighCardGameBtn.addEventListener('click', initHighCardGame);
+            
+            // 开始新游戏
+            initHighCardGame();
+        }
+    </script>
+</body>
+</html>
+    
