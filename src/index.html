@@ -1,32 +1,941 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andy剪辑工作室 - 日程管理</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], 
+        input[type="password"],
+        input[type="date"], 
+        textarea, 
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .schedule-list {
+            margin-top: 30px;
+        }
+        .schedule-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            position: relative;
+        }
+        .schedule-item h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .schedule-item p {
+            margin: 5px 0;
+        }
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #e74c3c;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        .file-link {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .file-link:hover {
+            text-decoration: underline;
+        }
+        .status-pending {
+            color: #f39c12;
+        }
+        .status-completed {
+            color: #27ae60;
+        }
+        .status-cancelled {
+            color: #e74c3c;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .file-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .user-info {
+            text-align: right;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .admin-only {
+            background-color: #fff8e1;
+            padding: 10px;
+            border-left: 3px solid #ffc107;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-page" class="login-container">
+        <h1>Andy剪辑工作室</h1>
+        <h2>用户登录</h2>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="login-username">用户名</label>
+                <input type="text" id="login-username" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">密码</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <button type="submit">登录</button>
+            <button type="button" onclick="showRegisterForm()">注册新账号</button>
+        </form>
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
-            <form class="row" id="greet-form">
-                <input id="inputValue" placeholder="Enter a something..." />
+        <form id="register-form" style="display: none;">
+            <h2>注册新账号</h2>
+            <div class="form-group">
+                <label for="register-username">用户名</label>
+                <input type="text" id="register-username" required>
+            </div>
+            <div class="form-group">
+                <label for="register-password">密码</label>
+                <input type="password" id="register-password" required>
+            </div>
+            <div class="form-group">
+                <label for="register-confirm">确认密码</label>
+                <input type="password" id="register-confirm" required>
+            </div>
+            <button type="button" onclick="registerUser()">注册</button>
+            <button type="button" onclick="showLoginForm()">返回登录</button>
+        </form>
+    </div>
+
+    <div id="app-container" class="container" style="display: none;">
+        <div class="user-info">
+            当前用户: <span id="current-user"></span>
+            <button onclick="logout()" style="margin-left: 10px; padding: 3px 8px; font-size: 12px;">退出登录</button>
+        </div>
+        
+        <h1>Andy剪辑工作室日程管理</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('add')">添加日程</div>
+            <div class="tab" onclick="switchTab('view')">查看日程</div>
+            <div class="tab" onclick="switchTab('backup')">数据备份</div>
+            <div id="admin-tab" class="tab" onclick="switchTab('admin')" style="display: none;">管理员</div>
+        </div>
+        
+        <div id="add-tab" class="tab-content active">
+            <h2>添加新日程</h2>
+            <form id="schedule-form">
+                <div class="form-group">
+                    <label for="title">项目标题</label>
+                    <input type="text" id="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="client">客户名称</label>
+                    <input type="text" id="client" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="date">截止日期</label>
+                    <input type="date" id="date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="priority">优先级</label>
+                    <select id="priority" required>
+                        <option value="high">高</option>
+                        <option value="medium" selected>中</option>
+                        <option value="low">低</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="status">状态</label>
+                    <select id="status" required>
+                        <option value="pending" selected>待处理</option>
+                        <option value="in-progress">进行中</option>
+                        <option value="completed">已完成</option>
+                        <option value="cancelled">已取消</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">项目描述</label>
+                    <textarea id="description"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="file">上传相关文件 (将转换为Base64存储在HTML中)</label>
+                    <input type="file" id="file">
+                    <div id="file-preview-container"></div>
+                </div>
+                
+                <button type="submit">保存日程</button>
             </form>
-            <div class="resultBox">
-                <span>result: </span>
-                <span id="result"></span>
+        </div>
+        
+        <div id="view-tab" class="tab-content">
+            <h2>所有日程</h2>
+            <div class="schedule-list" id="schedule-list">
+                <!-- 日程列表将在这里动态生成 -->
             </div>
-            <div class="invokeBox">
-                <button id="openUrl">open_url_browser</button>
-                <button id="openUrlNew">open_url_new</button>
-                <button id="runCommand">run_command</button>
-                <button id="downloadFile">download_file</button>
-                <button id="getExeDir">get_exe_dir</button>
-                <button id="getEnvVar">get_env_var</button>
-                <button id="findPort">find_port</button>
+        </div>
+        
+        <div id="backup-tab" class="tab-content">
+            <h2>数据备份与恢复</h2>
+            <div class="form-group">
+                <button onclick="exportData()">导出我的数据</button>
+                <p>导出的数据可以保存为.json文件备份</p>
             </div>
-        </main>
-    </body>
+            
+            <div class="form-group">
+                <label for="import-file">导入数据</label>
+                <input type="file" id="import-file" accept=".json">
+                <button onclick="importData()">导入数据</button>
+                <p>警告：导入数据将覆盖当前所有日程！</p>
+            </div>
+            
+            <div class="form-group">
+                <button onclick="clearAllData()" style="background-color: #e74c3c;">清空我的数据</button>
+                <p>警告：此操作不可逆！</p>
+            </div>
+        </div>
+        
+        <div id="admin-tab-content" class="tab-content">
+            <h2>管理员功能</h2>
+            <div class="admin-only">
+                <h3>用户管理</h3>
+                <div id="user-list">
+                    <!-- 用户列表将在这里动态生成 -->
+                </div>
+                
+                <h3>系统管理</h3>
+                <button onclick="exportAllData()" style="background-color: #4caf50;">导出所有用户数据</button>
+                <button onclick="clearAllUsersData()" style="background-color: #e74c3c;">清空所有用户数据</button>
+                <p>警告：这些操作会影响所有用户！</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化管理员账号
+        const ADMIN_USERNAME = 'andy';
+        const ADMIN_PASSWORD = '12345678';
+        
+        // 存储所有用户数据
+        let allUsersData = {};
+        let currentUser = null;
+        
+        // 页面加载时初始化数据
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllUsersData();
+            
+            // 检查是否有已登录用户
+            const loggedInUser = localStorage.getItem('andyStudioLoggedInUser');
+            if (loggedInUser) {
+                try {
+                    const userData = JSON.parse(loggedInUser);
+                    loginUser(userData.username, userData.password, true);
+                } catch (e) {
+                    console.error('解析登录信息失败:', e);
+                    logout();
+                }
+            }
+        });
+        
+        // 加载所有用户数据
+        function loadAllUsersData() {
+            const savedData = localStorage.getItem('andyStudioAllUsersData');
+            if (savedData) {
+                try {
+                    allUsersData = JSON.parse(savedData);
+                    
+                    // 如果还没有管理员账号，创建默认管理员
+                    if (!allUsersData[ADMIN_USERNAME]) {
+                        allUsersData[ADMIN_USERNAME] = {
+                            password: ADMIN_PASSWORD,
+                            isAdmin: true,
+                            schedules: []
+                        };
+                        saveAllUsersData();
+                    }
+                } catch (e) {
+                    console.error('解析用户数据失败:', e);
+                    allUsersData = {};
+                    // 创建默认管理员账号
+                    allUsersData[ADMIN_USERNAME] = {
+                        password: ADMIN_PASSWORD,
+                        isAdmin: true,
+                        schedules: []
+                    };
+                    saveAllUsersData();
+                }
+            } else {
+                // 创建默认管理员账号
+                allUsersData[ADMIN_USERNAME] = {
+                    password: ADMIN_PASSWORD,
+                    isAdmin: true,
+                    schedules: []
+                };
+                saveAllUsersData();
+            }
+        }
+        
+        // 保存所有用户数据
+        function saveAllUsersData() {
+            localStorage.setItem('andyStudioAllUsersData', JSON.stringify(allUsersData));
+        }
+        
+        // 登录表单提交
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            loginUser(username, password);
+        });
+        
+        // 用户登录
+        function loginUser(username, password, skipAlert = false) {
+            if (allUsersData[username] && allUsersData[username].password === password) {
+                currentUser = {
+                    username: username,
+                    password: password,
+                    isAdmin: allUsersData[username].isAdmin || false
+                };
+                
+                // 保存登录状态
+                localStorage.setItem('andyStudioLoggedInUser', JSON.stringify({
+                    username: username,
+                    password: password
+                }));
+                
+                // 显示主界面
+                document.getElementById('login-page').style.display = 'none';
+                document.getElementById('app-container').style.display = 'block';
+                document.getElementById('current-user').textContent = username;
+                
+                // 如果是管理员，显示管理员标签
+                if (currentUser.isAdmin) {
+                    document.getElementById('admin-tab').style.display = 'block';
+                    renderUserList();
+                } else {
+                    document.getElementById('admin-tab').style.display = 'none';
+                }
+                
+                // 渲染日程列表
+                renderScheduleList();
+                
+                if (!skipAlert) {
+                    alert('登录成功！');
+                }
+            } else {
+                alert('用户名或密码错误！');
+            }
+        }
+        
+        // 退出登录
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('andyStudioLoggedInUser');
+            document.getElementById('login-page').style.display = 'block';
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('login-form').reset();
+            document.getElementById('register-form').style.display = 'none';
+        }
+        
+        // 显示注册表单
+        function showRegisterForm() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
+            document.getElementById('register-form').reset();
+        }
+        
+        // 显示登录表单
+        function showLoginForm() {
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('login-form').reset();
+        }
+        
+        // 注册新用户
+        function registerUser() {
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const confirm = document.getElementById('register-confirm').value;
+            
+            if (password !== confirm) {
+                alert('两次输入的密码不一致！');
+                return;
+            }
+            
+            if (allUsersData[username]) {
+                alert('用户名已存在！');
+                return;
+            }
+            
+            // 创建新用户
+            allUsersData[username] = {
+                password: password,
+                isAdmin: false,
+                schedules: []
+            };
+            
+            saveAllUsersData();
+            alert('注册成功！请登录');
+            showLoginForm();
+        }
+        
+        // 渲染用户列表 (管理员)
+        function renderUserList() {
+            if (!currentUser || !currentUser.isAdmin) return;
+            
+            const userList = document.getElementById('user-list');
+            userList.innerHTML = '';
+            
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">用户名</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">角色</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">日程数量</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">操作</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+            
+            const tbody = document.createElement('tbody');
+            
+            Object.keys(allUsersData).forEach(username => {
+                const user = allUsersData[username];
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td style="border: 1px solid #ddd; padding: 8px;">${username}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.isAdmin ? '管理员' : '普通用户'}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.schedules ? user.schedules.length : 0}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">
+                        <button onclick="adminDeleteUser('${username}')" style="background-color: #e74c3c; padding: 3px 8px; font-size: 12px;">删除</button>
+                        ${!user.isAdmin ? `<button onclick="adminResetPassword('${username}')" style="background-color: #f39c12; padding: 3px 8px; font-size: 12px; margin-left: 5px;">重置密码</button>` : ''}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            table.appendChild(tbody);
+            userList.appendChild(table);
+        }
+        
+        // 管理员删除用户
+        function adminDeleteUser(username) {
+            if (!currentUser || !currentUser.isAdmin) return;
+            
+            if (username === currentUser.username) {
+                alert('不能删除当前登录的用户！');
+                return;
+            }
+            
+            if (username === ADMIN_USERNAME) {
+                alert('不能删除系统管理员账号！');
+                return;
+            }
+            
+            if (!confirm(`确定要删除用户 ${username} 吗？此操作将永久删除该用户的所有数据！`)) {
+                return;
+            }
+            
+            delete allUsersData[username];
+            saveAllUsersData();
+            alert('用户已删除');
+            renderUserList();
+        }
+        
+        // 管理员重置用户密码
+        function adminResetPassword(username) {
+            if (!currentUser || !currentUser.isAdmin) return;
+            
+            if (username === ADMIN_USERNAME) {
+                alert('不能重置系统管理员密码！');
+                return;
+            }
+            
+            const newPassword = prompt(`为 ${username} 设置新密码:`);
+            if (newPassword && newPassword.length >= 6) {
+                allUsersData[username].password = newPassword;
+                saveAllUsersData();
+                alert('密码已重置');
+            } else if (newPassword) {
+                alert('密码长度至少需要6位！');
+            }
+        }
+        
+        // 切换标签页
+        function switchTab(tabName) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 取消所有标签的活动状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选定的标签内容
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // 设置选定标签的活动状态
+            event.currentTarget.classList.add('active');
+            
+            // 如果是查看标签，刷新日程列表
+            if (tabName === 'view') {
+                renderScheduleList();
+            }
+            
+            // 如果是管理员标签，刷新用户列表
+            if (tabName === 'admin') {
+                renderUserList();
+            }
+        }
+        
+        // 渲染日程列表
+        function renderScheduleList() {
+            if (!currentUser) return;
+            
+            const scheduleList = document.getElementById('schedule-list');
+            scheduleList.innerHTML = '';
+            
+            const userSchedules = allUsersData[currentUser.username].schedules || [];
+            
+            if (userSchedules.length === 0) {
+                scheduleList.innerHTML = '<p>暂无日程记录</p>';
+                return;
+            }
+            
+            // 按日期排序
+            const sortedSchedules = [...userSchedules].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            sortedSchedules.forEach((schedule, index) => {
+                const scheduleItem = document.createElement('div');
+                scheduleItem.className = 'schedule-item';
+                
+                let statusClass = '';
+                if (schedule.status === 'completed') statusClass = 'status-completed';
+                else if (schedule.status === 'cancelled') statusClass = 'status-cancelled';
+                else statusClass = 'status-pending';
+                
+                let fileContent = '';
+                if (schedule.file) {
+                    if (schedule.file.type.startsWith('image/')) {
+                        fileContent = `
+                            <p>相关文件: 
+                                <a href="#" class="file-link" onclick="viewFile(${index})">${schedule.file.name}</a>
+                            </p>
+                            <img src="${schedule.file.data}" class="file-preview" style="display:none;" id="file-preview-${index}">
+                        `;
+                    } else {
+                        fileContent = `
+                            <p>相关文件: 
+                                <a href="#" class="file-link" onclick="downloadFile(${index})">${schedule.file.name}</a>
+                            </p>
+                        `;
+                    }
+                }
+                
+                scheduleItem.innerHTML = `
+                    <h3>${schedule.title}</h3>
+                    <p>客户: ${schedule.client}</p>
+                    <p>截止日期: ${schedule.date}</p>
+                    <p>优先级: ${getPriorityText(schedule.priority)}</p>
+                    <p class="${statusClass}">状态: ${getStatusText(schedule.status)}</p>
+                    ${fileContent}
+                    <p>${schedule.description || '无描述'}</p>
+                    <button class="delete-btn" onclick="deleteSchedule(${index})">删除</button>
+                `;
+                
+                scheduleList.appendChild(scheduleItem);
+            });
+        }
+        
+        // 获取优先级文本
+        function getPriorityText(priority) {
+            switch (priority) {
+                case 'high': return '高';
+                case 'medium': return '中';
+                case 'low': return '低';
+                default: return priority;
+            }
+        }
+        
+        // 获取状态文本
+        function getStatusText(status) {
+            switch (status) {
+                case 'pending': return '待处理';
+                case 'in-progress': return '进行中';
+                case 'completed': return '已完成';
+                case 'cancelled': return '已取消';
+                default: return status;
+            }
+        }
+        
+        // 删除日程
+        function deleteSchedule(index) {
+            if (!currentUser) return;
+            
+            if (!confirm('确定要删除这个日程吗？')) return;
+            
+            allUsersData[currentUser.username].schedules.splice(index, 1);
+            saveAllUsersData();
+            renderScheduleList();
+            alert('日程已删除');
+        }
+        
+        // 处理表单提交
+        document.getElementById('schedule-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                alert('请先登录！');
+                return;
+            }
+            
+            const title = document.getElementById('title').value;
+            const client = document.getElementById('client').value;
+            const date = document.getElementById('date').value;
+            const priority = document.getElementById('priority').value;
+            const status = document.getElementById('status').value;
+            const description = document.getElementById('description').value;
+            const fileInput = document.getElementById('file');
+            
+            try {
+                // 显示加载状态
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.textContent;
+                submitBtn.textContent = '保存中...';
+                submitBtn.disabled = true;
+                
+                let fileData = null;
+                
+                // 处理文件上传
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    fileData = await readFileAsBase64(file);
+                }
+                
+                // 创建新日程
+                const newSchedule = {
+                    title,
+                    client,
+                    date,
+                    priority,
+                    status,
+                    description,
+                    createdAt: new Date().toISOString()
+                };
+                
+                // 如果有文件，添加到日程
+                if (fileData) {
+                    newSchedule.file = {
+                        name: fileInput.files[0].name,
+                        type: fileInput.files[0].type,
+                        size: fileInput.files[0].size,
+                        data: fileData
+                    };
+                }
+                
+                // 添加到当前用户的日程列表
+                if (!allUsersData[currentUser.username].schedules) {
+                    allUsersData[currentUser.username].schedules = [];
+                }
+                
+                allUsersData[currentUser.username].schedules.push(newSchedule);
+                saveAllUsersData();
+                
+                // 重置表单
+                document.getElementById('schedule-form').reset();
+                document.getElementById('file-preview-container').innerHTML = '';
+                
+                // 显示成功消息
+                alert('日程保存成功！');
+                
+                // 切换到查看标签
+                switchTab('view');
+                
+            } catch (error) {
+                console.error('保存过程中出错:', error);
+                alert('保存失败: ' + error.message);
+            } finally {
+                // 恢复按钮状态
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                submitBtn.textContent = '保存日程';
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // 将文件读取为Base64
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // 预览文件选择
+        document.getElementById('file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const previewContainer = document.getElementById('file-preview-container');
+            previewContainer.innerHTML = '';
+            
+            if (!file) return;
+            
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'file-preview';
+                    previewContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                const info = document.createElement('div');
+                info.textContent = `已选择文件: ${file.name} (${formatFileSize(file.size)})`;
+                previewContainer.appendChild(info);
+            }
+        });
+        
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // 查看文件 (图片)
+        function viewFile(index) {
+            event.preventDefault();
+            const preview = document.getElementById(`file-preview-${index}`);
+            if (preview.style.display === 'none') {
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+        
+        // 下载文件
+        function downloadFile(index) {
+            event.preventDefault();
+            if (!currentUser) return;
+            
+            const file = allUsersData[currentUser.username].schedules[index].file;
+            const link = document.createElement('a');
+            link.href = file.data;
+            link.download = file.name;
+            link.click();
+        }
+        
+        // 导出当前用户数据
+        function exportData() {
+            if (!currentUser) return;
+            
+            const userData = {
+                username: currentUser.username,
+                schedules: allUsersData[currentUser.username].schedules || []
+            };
+            
+            const dataStr = JSON.stringify(userData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportName = `andy-studio-${currentUser.username}-schedules-${new Date().toISOString().slice(0, 10)}.json`;
+            
+            const link = document.createElement('a');
+            link.setAttribute('href', dataUri);
+            link.setAttribute('download', exportName);
+            link.click();
+        }
+        
+        // 导出所有用户数据 (管理员)
+        function exportAllData() {
+            if (!currentUser || !currentUser.isAdmin) return;
+            
+            const dataStr = JSON.stringify(allUsersData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportName = `andy-studio-all-users-data-${new Date().toISOString().slice(0, 10)}.json`;
+            
+            const link = document.createElement('a');
+            link.setAttribute('href', dataUri);
+            link.setAttribute('download', exportName);
+            link.click();
+        }
+        
+        // 导入当前用户数据
+        function importData() {
+            if (!currentUser) return;
+            
+            const fileInput = document.getElementById('import-file');
+            if (!fileInput.files.length) {
+                alert('请先选择要导入的文件');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // 验证导入的数据格式
+                    if (!Array.isArray(importedData.schedules)) {
+                        throw new Error('导入的数据格式不正确');
+                    }
+                    
+                    if (!confirm(`确定要导入 ${importedData.schedules.length} 条日程吗？这将覆盖现有数据！`)) {
+                        return;
+                    }
+                    
+                    // 更新当前用户的数据
+                    allUsersData[currentUser.username].schedules = importedData.schedules;
+                    saveAllUsersData();
+                    renderScheduleList();
+                    alert('数据导入成功！');
+                    fileInput.value = '';
+                    
+                } catch (error) {
+                    console.error('导入数据失败:', error);
+                    alert('导入失败: ' + error.message);
+                }
+            };
+            
+            reader.onerror = function() {
+                alert('读取文件失败');
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // 清空当前用户数据
+        function clearAllData() {
+            if (!currentUser) return;
+            
+            if (!confirm('确定要清空所有数据吗？此操作不可恢复！')) {
+                return;
+            }
+            
+            allUsersData[currentUser.username].schedules = [];
+            saveAllUsersData();
+            renderScheduleList();
+            alert('所有数据已清空');
+        }
+        
+        // 清空所有用户数据 (管理员)
+        function clearAllUsersData() {
+            if (!currentUser || !currentUser.isAdmin) return;
+            
+            if (!confirm('确定要清空所有用户的数据吗？此操作不可恢复！')) {
+                return;
+            }
+            
+            Object.keys(allUsersData).forEach(username => {
+                allUsersData[username].schedules = [];
+            });
+            
+            saveAllUsersData();
+            renderScheduleList();
+            alert('所有用户数据已清空');
+        }
+    </script>
+</body>
 </html>
