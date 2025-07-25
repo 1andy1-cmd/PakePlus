@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andy剪辑工作室 - 本地视频库</title>
+    <style>
+        /* 全局样式 */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --text-color: #333;
+            --text-light: #7f8c8d;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #f9f9f9;
+        }
+
+        /* 头部样式 */
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logo::before {
+            content: "🎬";
+            margin-right: 0.5rem;
+        }
+
+        .refresh-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .refresh-btn:hover {
+            background: #2980b9;
+        }
+
+        /* 主内容区 */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .video-stats {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            color: var(--text-light);
+        }
+
+        .video-stats span {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* 视频网格 */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .video-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-thumbnail {
+            position: relative;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9 宽高比 */
+            overflow: hidden;
+        }
+
+        .video-thumbnail video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .play-btn::before {
+            content: "▶";
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .video-card:hover .play-btn {
+            opacity: 1;
+        }
+
+        .video-details {
+            padding: 1rem;
+        }
+
+        .video-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .view-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            transition: var(--transition);
+        }
+
+        .view-btn:hover {
+            background: #2980b9;
+        }
+
+        /* 加载动画 */
+        .loading-spinner {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(52, 152, 219, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 无视频/错误提示 */
+        .no-videos, .error-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .no-videos::before, .error-message::before {
+            content: "❌";
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .error-message::before {
+            content: "⚠️";
+        }
+
+        /* 视频模态框 */
+        .video-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            width: 80%;
+            max-width: 1000px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        .modal-content video {
+            width: 100%;
+            max-height: 80vh;
+            background: #000;
+        }
+
+        .video-info {
+            background: white;
+            padding: 1rem;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">Andy剪辑工作室</div>
+            <button class="refresh-btn" id="refresh-btn">刷新列表</button>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="video-stats">
+            <span id="video-count">0</span> 个视频
+        </div>
+        
+        <div class="video-grid" id="video-grid">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>加载视频中...</p>
+            </div>
+        </div>
+    </main>
+    
+    <div class="video-modal" id="video-modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-modal">&times;</span>
+            <video controls id="modal-video">
+                您的浏览器不支持HTML5视频
+            </video>
+            <div class="video-info" id="modal-video-info">
+                <h3 id="modal-video-title"></h3>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 配置
+        const VIDEO_FOLDER = 'Z:/video'; // 修改为你的视频文件夹路径
+        const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.wmv', '.mkv'];
+        
+        // DOM元素
+        const videoGrid = document.getElementById('video-grid');
+        const videoModal = document.getElementById('video-modal');
+        const closeModal = document.getElementById('close-modal');
+        const modalVideo = document.getElementById('modal-video');
+        const modalVideoTitle = document.getElementById('modal-video-title');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const videoCount = document.getElementById('video-count');
+        
+        // 获取视频列表
+        async function getVideoList() {
+            try {
+                // 注意：浏览器中无法直接访问本地文件系统
+                // 这里需要用户手动选择文件夹或文件
+                // 以下代码仅为演示结构，实际需要用户交互
+                
+                // 模拟获取视频列表
+                const videos = [];
+                
+                // 这里应该是通过文件选择器获取的视频
+                // 实际使用时需要用户交互
+                
+                return videos;
+            } catch (error) {
+                console.error('获取视频列表失败:', error);
+                return [];
+            }
+        }
+        
+        // 加载视频列表
+        async function loadVideos() {
+            try {
+                videoGrid.innerHTML = `
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p>加载视频中...</p>
+                    </div>
+                `;
+                
+                const videos = await getVideoList();
+                
+                // 更新视频计数
+                videoCount.textContent = videos.length;
+                
+                // 清空现有内容
+                videoGrid.innerHTML = '';
+                
+                if (videos.length === 0) {
+                    videoGrid.innerHTML = `
+                        <div class="no-videos">
+                            <p>没有找到视频</p>
+                            <p>请确保Z:/video目录存在并包含视频文件</p>
+                            <p>或者使用文件选择器添加视频</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // 添加视频卡片
+                videos.forEach(video => {
+                    const videoCard = document.createElement('div');
+                    videoCard.className = 'video-card';
+                    videoCard.innerHTML = `
+                        <div class="video-thumbnail">
+                            <video>
+                                <source src="${video.path}" type="video/mp4">
+                            </video>
+                            <div class="play-btn"></div>
+                        </div>
+                        <div class="video-details">
+                            <h3 class="video-title">${video.title}</h3>
+                            <button class="view-btn">查看详情</button>
+                        </div>
+                    `;
+                    
+                    // 添加点击事件
+                    const playBtn = videoCard.querySelector('.play-btn');
+                    const viewBtn = videoCard.querySelector('.view-btn');
+                    const videoElement = videoCard.querySelector('video');
+                    
+                    // 点击播放按钮
+                    playBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openVideoModal(video);
+                    });
+                    
+                    // 点击查看按钮
+                    viewBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openVideoModal(video);
+                    });
+                    
+                    // 点击卡片
+                    videoCard.addEventListener('click', () => {
+                        openVideoModal(video);
+                    });
+                    
+                    videoGrid.appendChild(videoCard);
+                });
+                
+            } catch (error) {
+                console.error('加载视频失败:', error);
+                videoGrid.innerHTML = `
+                    <div class="error-message">
+                        <p>加载视频失败，请刷新重试</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 打开视频模态框
+        function openVideoModal(video) {
+            modalVideo.src = video.path;
+            modalVideoTitle.textContent = video.title;
+            videoModal.style.display = 'flex';
+            
+            // 播放视频
+            modalVideo.play().catch(e => {
+                console.error('自动播放失败:', e);
+            });
+        }
+        
+        // 关闭视频模态框
+        function closeVideoModal() {
+            modalVideo.pause();
+            modalVideo.src = '';
+            videoModal.style.display = 'none';
+        }
+        
+        // 事件监听
+        closeModal.addEventListener('click', closeVideoModal);
+        videoModal.addEventListener('click', (e) => {
+            if (e.target === videoModal) {
+                closeVideoModal();
+            }
+        });
+        
+        // 刷新功能
+        refreshBtn.addEventListener('click', loadVideos);
+        
+        // 文件选择器
+        async function handleFileSelect() {
+            try {
+                // 注意：以下代码需要现代浏览器支持
+                // 实际使用时可能需要用户交互
+                
+                // 创建文件输入元素
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.webkitdirectory = true; // 允许选择目录
+                fileInput.multiple = true;
+                fileInput.accept = VIDEO_EXTENSIONS.map(ext => `video/${ext.substring(1)}`).join(',');
+                
+                fileInput.addEventListener('change', async (event) => {
+                    const files = Array.from(event.target.files);
+                    const videos = files
+                        .filter(file => VIDEO_EXTENSIONS.includes(
+                            '.' + file.name.split('.').pop().toLowerCase()
+                        ))
+                        .map(file => ({
+                            title: file.name,
+                            path: URL.createObjectURL(file),
+                            file: file
+                        }));
+                    
+                    // 显示视频
+                    displayVideos(videos);
+                });
+                
+                fileInput.click();
+            } catch (error) {
+                console.error('文件选择错误:', error);
+                alert('无法访问文件: ' + error.message);
+            }
+        }
+        
+        // 显示视频
+        function displayVideos(videos) {
+            // 更新视频计数
+            videoCount.textContent = videos.length;
+            
+            // 清空现有内容
+            videoGrid.innerHTML = '';
+            
+            if (videos.length === 0) {
+                videoGrid.innerHTML = `
+                    <div class="no-videos">
+                        <p>没有找到视频</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 添加视频卡片
+            videos.forEach(video => {
+                const videoCard = document.createElement('div');
+                videoCard.className = 'video-card';
+                videoCard.innerHTML = `
+                    <div class="video-thumbnail">
+                        <video>
+                            <source src="${video.path}" type="video/mp4">
+                        </video>
+                        <div class="play-btn"></div>
+                    </div>
+                    <div class="video-details">
+                        <h3 class="video-title">${video.title}</h3>
+                        <button class="view-btn">查看详情</button>
+                    </div>
+                `;
+                
+                // 添加点击事件
+                const playBtn = videoCard.querySelector('.play-btn');
+                const viewBtn = videoCard.querySelector('.view-btn');
+                const videoElement = videoCard.querySelector('video');
+                
+                // 鼠标悬停预览
+                videoCard.addEventListener('mouseenter', () => {
+                    videoElement.play().catch(e => {});
+                });
+                
+                videoCard.addEventListener('mouseleave', () => {
+                    videoElement.pause();
+                    videoElement.currentTime = 0;
+                });
+                
+                // 点击播放按钮
+                playBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openVideoModal(video);
+                });
+                
+                // 点击查看按钮
+                viewBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openVideoModal(video);
+                });
+                
+                // 点击卡片
+                videoCard.addEventListener('click', () => {
+                    openVideoModal(video);
+                });
+                
+                videoGrid.appendChild(videoCard);
+            });
+        }
+        
+        // 初始化页面
+        window.addEventListener('DOMContentLoaded', () => {
+            // 尝试自动加载（在浏览器中通常无法直接访问本地文件系统）
+            loadVideos();
+            
+            // 添加手动选择文件按钮
+            const manualSelectBtn = document.createElement('button');
+            manualSelectBtn.className = 'refresh-btn';
+            manualSelectBtn.textContent = '选择视频文件夹';
+            manualSelectBtn.style.marginLeft = '10px';
+            manualSelectBtn.addEventListener('click', handleFileSelect);
+            
+            document.querySelector('.header-content').appendChild(manualSelectBtn);
+        });
+    </script>
+</body>
+</html>
