@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>棋类游戏合集</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8B5CF6',
+                        secondary: '#EC4899',
+                        neutral: '#1F2937',
+                        board: '#E6C17A',
+                        accent: '#F59E0B'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Merriweather', 'Georgia', 'serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .board-shadow {
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            }
+            .piece-hover {
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+            .piece-hover:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+            .game-card {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .game-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-neutral-50 to-neutral-100 min-h-screen font-sans text-neutral-800">
+    <!-- 导航栏 -->
+    <nav class="bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-chess-king text-primary text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-neutral">棋类游戏合集</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-neutral-100 transition-colors">
+                    <i class="fa fa-moon-o text-neutral-600"></i>
+                </button>
+                <button id="settings-btn" class="p-2 rounded-full hover:bg-neutral-100 transition-colors">
+                    <i class="fa fa-cog text-neutral-600"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 pt-24 pb-16">
+        <!-- 游戏选择界面 -->
+        <section id="game-selection" class="transition-all duration-500">
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-center mb-10 text-neutral">选择游戏</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                <!-- 围棋 -->
+                <div class="game-card bg-white rounded-xl overflow-hidden shadow-md cursor-pointer" data-game="go">
+                    <div class="h-48 bg-board relative">
+                        <div class="absolute inset-2 bg-board/90 grid grid-cols-19 grid-rows-19 gap-0.5">
+                            <div class="bg-black rounded-full m-auto w-3 h-3 col-start-4 row-start-4"></div>
+                            <div class="bg-white rounded-full m-auto w-3 h-3 col-start-10 row-start-4"></div>
+                            <div class="bg-black rounded-full m-auto w-3 h-3 col-start-16 row-start-4"></div>
+                            <div class="bg-black rounded-full m-auto w-3 h-3 col-start-4 row-start-10"></div>
+                            <div class="bg-white rounded-full m-auto w-3 h-3 col-start-10 row-start-10"></div>
+                            <div class="bg-black rounded-full m-auto w-3 h-3 col-start-16 row-start-10"></div>
+                            <div class="bg-white rounded-full m-auto w-3 h-3 col-start-4 row-start-16"></div>
+                            <div class="bg-black rounded-full m-auto w-3 h-3 col-start-10 row-start-16"></div>
+                            <div class="bg-white rounded-full m-auto w-3 h-3 col-start-16 row-start-16"></div>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="text-xl font-bold mb-2">围棋</h3>
+                        <p class="text-neutral-600 text-sm">古老的策略性棋类游戏，使用黑白棋子在棋盘上围地。</p>
+                    </div>
+                </div>
+                
+                <!-- 象棋 -->
+                <div class="game-card bg-white rounded-xl overflow-hidden shadow-md cursor-pointer" data-game="chinese-chess">
+                    <div class="h-48 bg-board/80 relative">
+                        <div class="absolute inset-3 bg-board grid grid-cols-9 grid-rows-10 gap-0.5">
+                            <div class="m-auto bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">車</div>
+                            <div class="m-auto bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">馬</div>
+                            <div class="m-auto bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">相</div>
+                            <div class="m-auto bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">仕</div>
+                            <div class="m-auto bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">帥</div>
+                            <div class="m-auto bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">仕</div>
+                            <div class="m-auto bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">相</div>
+                            <div class="m-auto bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">馬</div>
+                            <div class="m-auto bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">車</div>
+                            <div class="m-auto col-span-9 row-start-5 flex justify-center items-center">
+                                <span class="text-xs font-bold text-neutral-700">楚河&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;漢界</span>
+                            </div>
+                            <div class="m-auto bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">車</div>
+                            <div class="m-auto bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">馬</div>
+                            <div class="m-auto bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">象</div>
+                            <div class="m-auto bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">士</div>
+                            <div class="m-auto bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">將</div>
+                            <div class="m-auto bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">士</div>
+                            <div class="m-auto bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">象</div>
+                            <div class="m-auto bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">馬</div>
+                            <div class="m-auto bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">車</div>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="text-xl font-bold mb-2">中国象棋</h3>
+                        <p class="text-neutral-600 text-sm">传统的中国棋类游戏，讲究战术和策略，棋子有不同的移动规则。</p>
+                    </div>
+                </div>
+                
+                <!-- 国际象棋 -->
+                <div class="game-card bg-white rounded-xl overflow-hidden shadow-md cursor-pointer" data-game="chess">
+                    <div class="h-48 bg-white relative">
+                        <div class="absolute inset-2 grid grid-cols-8 grid-rows-8">
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="bg-[#F0D9B5]"></div>
+                            <div class="bg-[#B58863]"></div>
+                            <div class="absolute col-start-2 row-start-1 flex items-center justify-center text-2xl text-black">♖</div>
+                            <div class="absolute col-start-3 row-start-1 flex items-center justify-center text-2xl text-black">♘</div>
+                            <div class="absolute col-start-4 row-start-1 flex items-center justify-center text-2xl text-black">♗</div>
+                            <div class="absolute col-start-5 row-start-1 flex items-center justify-center text-2xl text-black">♕</div>
+                            <div class="absolute col-start-6 row-start-1 flex items-center justify-center text-2xl text-black">♔</div>
+                            <div class="absolute col-start-2 row-start-2 flex items-center justify-center text-xl text-black">♙</div>
+                            <div class="absolute col-start-7 row-start-1 flex items-center justify-center text-2xl text-black">♗</div>
+                            <div class="absolute col-start-3 row-start-2 flex items-center justify-center text-xl text-black">♙</div>
+                            <div class="absolute col-start-8 row-start-1 flex items-center justify-center text-2xl text-black">♖</div>
+                            <div class="absolute col-start-4 row-start-2 flex items-center justify-center text-xl text-black">♙</div>
+                            <div class="absolute col-start-5 row-start-2 flex items-center justify-center text-xl text-black">♙</div>
+                            <div class="absolute col-start-6 row-start-2 flex items-center justify-center text-xl text-black">♙</div>
+                            <div class="absolute col-start-7 row-start-2 flex items-center justify-center text-xl text-black">♙</div>
+                            <div class="absolute col-start-8 row-start-2 flex items-center justify-center text-xl text-black">♙</div>
+                            <div class="absolute col-start-1 row-start-1 flex items-center justify-center text-2xl text-black">♜</div>
+                            <div class="absolute col-start-1 row-start-2 flex items-center justify-center text-xl text-black">♟</div>
+                            <div class="absolute col-start-1 row-start-7 flex items-center justify-center text-xl text-white">♙</div>
+                            <div class="absolute col-start-2 row-start-7 flex items-center justify-center text-xl text-white">♙</div>
+                            <div class="absolute col-start-3 row-start-7 flex items-center justify-center text-xl text-white">♙</div>
+                            <div class="absolute col-start-4 row-start-7 flex items-center justify-center text-xl text-white">♙</div>
+                            <div class="absolute col-start-5 row-start-7 flex items-center justify-center text-xl text-white">♙</div>
+                            <div class="absolute col-start-6 row-start-7 flex items-center justify-center text-xl text-white">♙</div>
+                            <div class="absolute col-start-7 row-start-7 flex items-center justify-center text-xl text-white">♙</div>
+                            <div class="absolute col-start-8 row-start-7 flex items-center justify-center text-xl text-white">♙</div>
+                            <div class="absolute col-start-1 row-start-8 flex items-center justify-center text-2xl text-white">♖</div>
+                            <div class="absolute col-start-2 row-start-8 flex items-center justify-center text-2xl text-white">♘</div>
+                            <div class="absolute col-start-3 row-start-8 flex items-center justify-center text-2xl text-white">♗</div>
+                            <div class="absolute col-start-4 row-start-8 flex items-center justify-center text-2xl text-white">♕</div>
+                            <div class="absolute col-start-5 row-start-8 flex items-center justify-center text-2xl text-white">♔</div>
+                            <div class="absolute col-start-6 row-start-8 flex items-center justify-center text-2xl text-white">♗</div>
+                            <div class="absolute col-start-7 row-start-8 flex items-center justify-center text-2xl text-white">♘</div>
+                            <div class="absolute col-start-8 row-start-8 flex items-center justify-center text-2xl text-white">♖</div>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="text-xl font-bold mb-2">国际象棋</h3>
+                        <p class="text-neutral-600 text-sm">世界流行的策略性棋类游戏，每个棋子有独特的移动方式。</p>
+                    </div>
+                </div>
+                
+                <!-- 跳棋 -->
+                <div class="game-card bg-white rounded-xl overflow-hidden shadow-md cursor-pointer" data-game="checkers">
+                    <div class="h-48 bg-white relative">
+                        <div class="absolute inset-2 grid grid-cols-8 grid-rows-8">
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-white"></div>
+                            <div class="bg-black"></div>
+                            <div class="bg-black bg-[#B58863]"></div>
+                            <div class="bg-white bg-[#F0D9B5]"></div>
+                            <div class="bg-black bg-[#B58863]"></div>
+                            <div class="bg-white bg-[#F0D9B5]"></div>
+                            <div class="bg-black bg-[#B58863]"></div>
+                            <div class="bg-white bg-[#F0D9B5]"></div>
+                            <div class="bg-black bg-[#B58863]"></div>
+                            <div class="bg-white bg-[#F0D9B5]"></div>
+                            <div class="bg-white bg-[#F0D9B5]"></div>
+                            <div class="bg-black bg-[#B58863]"></div>
+                            <div class="bg-white bg-[#F0D9B5]"></div>
+                            <div class="bg-black bg-[#B58863]"></div>
+                            <div class="bg-white bg-[#F0D9B5]"></div>
+                            <div class="bg-black bg-[#B58863]"></div>
+                            <div class="bg-white bg-[#F0D9B5]"></div>
+                            <div class="bg-black bg-[#B58863]"></div>
+                            <div class="absolute col-start-1 row-start-1 m-auto bg-red-600 rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-3 row-start-1 m-auto bg-red-600 rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-5 row-start-1 m-auto bg-red-600 rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-7 row-start-1 m-auto bg-red-600 rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-2 row-start-2 m-auto bg-red-600 rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-4 row-start-2 m-auto bg-red-600 rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-6 row-start-2 m-auto bg-red-600 rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-8 row-start-2 m-auto bg-red-600 rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-1 row-start-3 m-auto bg-red-600 rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-3 row-start-3 m-auto bg-red-600 rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-5 row-start-3 m-auto bg-red-600 rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-7 row-start-3 m-auto bg-red-600 rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-2 row-start-6 m-auto bg-black rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-4 row-start-6 m-auto bg-black rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-6 row-start-6 m-auto bg-black rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-8 row-start-6 m-auto bg-black rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-1 row-start-7 m-auto bg-black rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-3 row-start-7 m-auto bg-black rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-5 row-start-7 m-auto bg-black rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-7 row-start-7 m-auto bg-black rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-2 row-start-8 m-auto bg-black rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-4 row-start-8 m-auto bg-black rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-6 row-start-8 m-auto bg-black rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-8 row-start-8 m-auto bg-black rounded-full w-6 h-6"></div>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="text-xl font-bold mb-2">跳棋</h3>
+                        <p class="text-neutral-600 text-sm">通过跳跃对方棋子来吃掉对方，先把对方棋子吃光或让对方无法移动者获胜。</p>
+                    </div>
+                </div>
+                
+                <!-- 五子棋 -->
+                <div class="game-card bg-white rounded-xl overflow-hidden shadow-md cursor-pointer" data-game="gobang">
+                    <div class="h-48 bg-board relative">
+                        <div class="absolute inset-3 bg-board/90 grid grid-cols-15 grid-rows-15 gap-0.5">
+                            <div class="absolute col-start-6 row-start-6 m-auto bg-black rounded-full w-5 h-5"></div>
+                            <div class="absolute col-start-7 row-start-6 m-auto bg-black rounded-full w-5 h-5"></div>
+                            <div class="absolute col-start-8 row-start-6 m-auto bg-black rounded-full w-5 h-5"></div>
+                            <div class="absolute col-start-9 row-start-6 m-auto bg-black rounded-full w-5 h-5"></div>
+                            <div class="absolute col-start-10 row-start-6 m-auto bg-black rounded-full w-5 h-5"></div>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="text-xl font-bold mb-2">五子棋</h3>
+                        <p class="text-neutral-600 text-sm">黑白双方交替落子，先将五枚棋子连成一线者获胜。</p>
+                    </div>
+                </div>
+                
+                <!-- 黑白棋 -->
+                <div class="game-card bg-white rounded-xl overflow-hidden shadow-md cursor-pointer" data-game="reversi">
+                    <div class="h-48 bg-board relative">
+                        <div class="absolute inset-3 bg-board/90 grid grid-cols-8 grid-rows-8 gap-0.5">
+                            <div class="absolute col-start-4 row-start-4 m-auto bg-black rounded-full w-6 h-6"></div>
+                            <div class="absolute col-start-5 row-start-4 m-auto bg-white rounded-full w-6 h-6 border border-black"></div>
+                            <div class="absolute col-start-4 row-start-5 m-auto bg-white rounded-full w-6 h-6 border border-black"></div>
+                            <div class="absolute col-start-5 row-start-5 m-auto bg-black rounded-full w-6 h-6"></div>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="text-xl font-bold mb-2">黑白棋</h3>
+                        <p class="text-neutral-600 text-sm">棋子一面白一面黑，通过翻转对方棋子来扩大自己的领地，最终棋子多者获胜。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 游戏记录 -->
+            <section class="bg-white rounded-xl shadow-md p-6 mb-10">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fa fa-history text-primary mr-2"></i>游戏记录
+                </h3>
+                <div id="game-history" class="space-y-3">
+                    <div class="flex items-center justify-between p-3 border border-neutral-100 rounded-lg hover:bg-neutral-50 transition-colors">
+                        <div>
+                            <h4 class="font-medium">国际象棋</h4>
+                            <p class="text-sm text-neutral-500">2025-07-09 14:30:22</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">胜利</span>
+                            <button class="text-primary hover:text-primary/80 transition-colors" data-load="chess-1699492222">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between p-3 border border-neutral-100 rounded-lg hover:bg-neutral-50 transition-colors">
+                        <div>
+                            <h4 class="font-medium">五子棋</h4>
+                            <p class="text-sm text-neutral-500">2025-07-08 19:45:11</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">失败</span>
+                            <button class="text-primary hover:text-primary/80 transition-colors" data-load="gobang-1699405511">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between p-3 border border-neutral-100 rounded-lg hover:bg-neutral-50 transition-colors">
+                        <div>
+                            <h4 class="font-medium">围棋</h4>
+                            <p class="text-sm text-neutral-500">2025-07-05 10:20:33</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">平局</span>
+                            <button class="text-primary hover:text-primary/80 transition-colors" data-load="go-1699150833">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button id="clear-history" class="mt-4 text-sm text-red-500 hover:text-red-700 transition-colors">
+                    <i class="fa fa-trash-o mr-1"></i>清空记录
+                </button>
+            </section>
+        </section>
+
+        <!-- 游戏设置界面 -->
+        <section id="game-settings" class="hidden transition-all duration-500">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">游戏设置</h2>
+                    <button id="back-to-selection" class="text-neutral-500 hover:text-neutral-700 transition-colors">
+                        <i class="fa fa-arrow-left"></i>
+                    </button>
+                </div>
+                
+                <div id="settings-content">
+                    <!-- 难度选择 -->
+                    <div class="mb-6">
+                        <label class="block text-lg font-medium mb-2">游戏难度</label>
+                        <div class="grid grid-cols-3 gap-4">
+                            <button class="difficulty-btn bg-white border-2 border-neutral-200 hover:border-primary rounded-lg p-4 text-center transition-all" data-difficulty="easy">
+                                <i class="fa fa-smile-o text-2xl mb-2 text-green-500"></i>
+                                <h3 class="font-medium">简单</h3>
+                                <p class="text-sm text-neutral-500 mt-1">适合初学者</p>
+                            </button>
+                            <button class="difficulty-btn bg-white border-2 border-primary rounded-lg p-4 text-center transition-all" data-difficulty="medium">
+                                <i class="fa fa-meh-o text-2xl mb-2 text-yellow-500"></i>
+                                <h3 class="font-medium">中等</h3>
+                                <p class="text-sm text-neutral-500 mt-1">有一定挑战性</p>
+                            </button>
+                            <button class="difficulty-btn bg-white border-2 border-neutral-200 hover:border-primary rounded-lg p-4 text-center transition-all" data-difficulty="hard">
+                                <i class="fa fa-frown-o text-2xl mb-2 text-red-500"></i>
+                                <h3 class="font-medium">困难</h3>
+                                <p class="text-sm text-neutral-500 mt-1">专业玩家挑战</p>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 颜色选择 -->
+                    <div class="mb-6">
+                        <label class="block text-lg font-medium mb-2">你的棋子颜色</label>
+                        <div class="flex space-x-4">
+                            <button class="color-btn w-12 h-12 rounded-full bg-black border-4 border-primary" data-color="black"></button>
+                            <button class="color-btn w-12 h-12 rounded-full bg-white border-4 border-neutral-200 hover:border-primary transition-all" data-color="white"></button>
+                        </div>
+                    </div>
+                    
+                    <!-- 音效设置 -->
+                    <div class="mb-6">
+                        <label class="block text-lg font-medium mb-2">音效</label>
+                        <div class="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
+                            <div>
+                                <h3 class="font-medium">落子音效</h3>
+                                <p class="text-sm text-neutral-500">下棋时的音效</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" value="" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-neutral-50 rounded-lg mt-3">
+                            <div>
+                                <h3 class="font-medium">胜利音效</h3>
+                                <p class="text-sm text-neutral-500">获胜时的庆祝音效</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" value="" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="start-game" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                    开始游戏
+                </button>
+            </div>
+        </section>
+
+        <!-- 游戏界面 -->
+        <section id="game-play" class="hidden transition-all duration-500">
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- 棋盘区域 -->
+                <div class="lg:w-2/3">
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 id="current-game-title" class="text-2xl font-bold">国际象棋</h2>
+                            <div class="flex space-x-3">
+                                <button id="save-game" class="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-4 py-2 rounded-lg transition-colors">
+                                    <i class="fa fa-save mr-1"></i>保存
+                                </button>
+                                <button id="undo-move" class="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-4 py-2 rounded-lg transition-colors">
+                                    <i class="fa fa-undo mr-1"></i>悔棋
+                                </button>
+                                <button id="restart-game" class="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-4 py-2 rounded-lg transition-colors">
+                                    <i class="fa fa-refresh mr-1"></i>重新开始
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 棋盘 -->
+                        <div id="game-board" class="relative mx-auto">
+                            <!-- 棋盘将由JS动态生成 -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 游戏信息和控制区 -->
+                <div class="lg:w-1/3">
+                    <!-- 玩家信息 -->
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                        <h3 class="text-xl font-bold mb-4">玩家信息</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 bg-neutral-50 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <div id="player-color" class="w-6 h-6 rounded-full bg-black mr-2"></div>
+                                    <h4 class="font-medium">你</h4>
+                                </div>
+                                <p class="text-2xl font-bold" id="player-score">0</p>
+                            </div>
+                            <div class="p-4 bg-neutral-50 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <div id="computer-color" class="w-6 h-6 rounded-full bg-white border border-neutral-300 mr-2"></div>
+                                    <h4 class="font-medium">电脑</h4>
+                                </div>
+                                <p class="text-2xl font-bold" id="computer-score">0</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-primary/10 rounded-lg">
+                            <div class="flex items-center">
+                                <div id="current-player-color" class="w-5 h-5 rounded-full bg-black mr-2"></div>
+                                <p class="font-medium">当前回合: <span id="current-player-text">你</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 游戏控制 -->
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                        <h3 class="text-xl font-bold mb-4">游戏控制</h3>
+                        
+                        <div class="mb-4">
+                            <label class="block font-medium mb-2">难度</label>
+                            <div class="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
+                                <h4 class="font-medium" id="current-difficulty">中等</h4>
+                                <button id="change-difficulty" class="text-primary hover:text-primary/80 transition-colors">
+                                    更改
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block font-medium mb-2">提示</label>
+                            <button id="get-hint" class="w-full bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-medium py-2 px-4 rounded-lg transition-colors">
+                                <i class="fa fa-lightbulb-o mr-1"></i>获取提示
+                            </button>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block font-medium mb-2">认输</label>
+                            <button id="give-up" class="w-full bg-red-100 hover:bg-red-200 text-red-800 font-medium py-2 px-4 rounded-lg transition-colors">
+                                <i class="fa fa-flag mr-1"></i>认输
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 走棋历史 -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-xl font-bold mb-4">走棋历史</h3>
+                        <div id="move-history" class="max-h-60 overflow-y-auto space-y-2 text-sm">
+                            <div class="p-2 bg-neutral-50 rounded">
+                                <span class="font-medium">第1步:</span> 白方 e2→e4
+                            </div>
+                            <div class="p-2 bg-neutral-50 rounded">
+                                <span class="font-medium">第2步:</span> 黑方 e7→e5
+                            </div>
+                            <div class="p-2 bg-neutral-50 rounded">
+                                <span class="font-medium">第3步:</span> 白方 g1→f3
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 游戏结束模态框 -->
+    <div id="game-over-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl p-8 max-w-md w-full mx-4 transform transition-all">
+            <div class="text-center mb-6">
+                <div id="winner-icon" class="mx-auto w-16 h-16 flex items-center justify-center bg-green-100 text-green-500 rounded-full mb-4">
+                    <i class="fa fa-trophy text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2" id="winner-text">恭喜，你赢了！</h2>
+                <p class="text-neutral-600" id="winner-message">你以12:8的比分战胜了电脑。</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <button id="play-again-btn" class="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                    再玩一次
+                </button>
+                <button id="back-to-menu-btn" class="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium py-3 px-4 rounded-lg transition-colors">
+                    返回菜单
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置模态框 -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl p-8 max-w-md w-full mx-4 transform transition-all">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">应用设置</h2>
+                <button id="close-settings-modal" class="text-neutral-500 hover:text-neutral-700 transition-colors">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-lg font-medium mb-2">主题</label>
+                    <div class="flex space-x-4">
+                        <button class="theme-btn w-12 h-12 rounded-full bg-white border-4 border-primary" data-theme="light"></button>
+                        <button class="theme-btn w-12 h-12 rounded-full bg-neutral-900 border-4 border-neutral-200 hover:border-primary transition-all" data-theme="dark"></button>
+                        <button class="theme-btn w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 border-4 border-neutral-200 hover:border-primary transition-all" data-theme="auto"></button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-lg font-medium mb-2">动画效果</label>
+                    <div class="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
+                        <div>
+                            <h3 class="font-medium">棋子移动动画</h3>
+                            <p class="text-sm text-neutral-500">棋子移动时的动画效果</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" value="" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-lg font-medium mb-2">声音</label>
+                    <div class="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
+                        <div>
+                            <h3 class="font-medium">背景音乐</h3>
+                            <p class="text-sm text-neutral-500">游戏过程中的背景音乐</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" value="" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="save-app-settings" class="mt-6 w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                保存设置
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 全局游戏状态
+        const gameState = {
+            currentGame: null,
+            playerColor: 'black',
+            difficulty: 'medium',
+            boardSize: 8, // 默认国际象棋大小
+            gameBoard: [],
+            moveHistory: [],
+            currentPlayer: 'player',
+            gameOver: false,
+            scores: {
+                player: 0,
+                computer: 0
+            }
+        };
+
+        // DOM元素
+        const gameSelection = document.getElementById('game-selection');
+        const gameSettings = document.getElementById('game-settings');
+        const gamePlay = document.getElementById('game-play');
+        const currentGameTitle = document.getElementById('current-game-title');
+        const playerColorEl = document.getElementById('player-color');
+        const computerColorEl = document.getElementById('computer-color');
+        const currentPlayerColorEl = document.getElementById('current-player-color');
+        const currentPlayerTextEl = document.getElementById('current-player-text');
+        const playerScoreEl = document.getElementById('player-score');
+        const computerScoreEl = document.getElementById('computer-score');
+        const currentDifficultyEl = document.getElementById('current-difficulty');
+        const gameBoard = document.getElementById('game-board');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const winnerTextEl = document.getElementById('winner-text');
+        const winnerMessageEl = document.getElementById('winner-message');
+        const winnerIconEl = document.getElementById('winner-icon');
+        const settingsModal = document.getElementById('settings-modal');
+        
+        // 初始化游戏选择
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const gameType = card.dataset.game;
+                gameState.currentGame = gameType;
+                gameSelection.classList.add('hidden');
+                gameSettings.classList.remove('hidden');
+                
+                // 更新设置界面中的游戏名称
+                document.querySelector('#settings-content h2').textContent = `设置 - ${getGameName(gameType)}`;
+            });
+        });
+
+        // 返回游戏选择
+        document.getElementById('back-to-selection').addEventListener('click', () => {
+            gameSettings.classList.add('hidden');
+            gameSelection.classList.remove('hidden');
+        });
+
+        // 难度选择
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.difficulty-btn').forEach(b => {
+                    b.classList.remove('border-primary');
+                    b.classList.add('border-neutral-200');
+                });
+                btn.classList.remove('border-neutral-200');
+                btn.classList.add('border-primary');
+                gameState.difficulty = btn.dataset.difficulty;
+            });
+        });
+
+        // 颜色选择
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.color-btn').forEach(b => {
+                    b.classList.remove('border-primary');
+                    b.classList.add('border-neutral-200');
+                });
+                btn.classList.remove('border-neutral-200');
+                btn.classList.add('border-primary');
+                gameState.playerColor = btn.dataset.color;
+            });
+        });
+
+        // 开始游戏
+        document.getElementById('start-game').addEventListener('click', () => {
+            gameSettings.classList.add('hidden');
+            gamePlay.classList.remove('hidden');
+            
+            // 更新游戏界面
+            currentGameTitle.textContent = getGameName(gameState.currentGame);
+            playerColorEl.className = `w-6 h-6 rounded-full ${gameState.playerColor === 'black' ? 'bg-black' : 'bg-white border border-neutral-300'} mr-2`;
+            computerColorEl.className = `w-6 h-6 rounded-full ${gameState.playerColor === 'black' ? 'bg-white border border-neutral-300' : 'bg-black'} mr-2`;
+            currentPlayerColorEl.className = `w-5 h-5 rounded-full ${gameState.currentPlayer === 'player' ? gameState.playerColor === 'black' ? 'bg-black' : 'bg-white border border-neutral-300' : gameState.playerColor === 'black' ? 'bg-white border border-neutral-300' : 'bg-black'} mr-2`;
+            currentPlayerTextEl.textContent = gameState.currentPlayer === 'player' ? '你' : '电脑';
+            currentDifficultyEl.textContent = getDifficultyName(gameState.difficulty);
+            
+            // 初始化游戏
+            initGame();
+        });
+
+        // 保存游戏
+        document.getElementById('save-game').addEventListener('click', () => {
+            saveGame();
+            showNotification('游戏已保存');
+        });
+
+        // 悔棋
+        document.getElementById('undo-move').addEventListener('click', () => {
+            if (gameState.moveHistory.length > 0) {
+                // 移除最后一步
+                gameState.moveHistory.pop();
+                // 重新渲染棋盘
+                renderBoard();
+                // 切换玩家
+                gameState.currentPlayer = gameState.currentPlayer === 'player' ? 'computer' : 'player';
+                updateCurrentPlayer();
+                
+                showNotification('已悔棋');
+            } else {
+                showNotification('没有可悔的棋');
+            }
+        });
+
+        // 重新开始游戏
+        document.getElementById('restart-game').addEventListener('click', () => {
+            if (confirm('确定要重新开始游戏吗？当前进度将丢失。')) {
+                initGame();
+                showNotification('游戏已重新开始');
+            }
+        });
+
+        // 获取提示
+        document.getElementById('get-hint').addEventListener('click', () => {
+            showNotification('提示功能开发中');
+        });
+
+        // 认输
+        document.getElementById('give-up').addEventListener('click', () => {
+            if (confirm('确定要认输吗？')) {
+                endGame('computer');
+            }
+        });
+
+        // 更改难度
+        document.getElementById('change-difficulty').addEventListener('click', () => {
+            gamePlay.classList.add('hidden');
+            gameSettings.classList.remove('hidden');
+        });
+
+        // 再玩一次
+        document.getElementById('play-again-btn').addEventListener('click', () => {
+            gameOverModal.classList.add('hidden');
+            initGame();
+        });
+
+        // 返回菜单
+        document.getElementById('back-to-menu-btn').addEventListener('click', () => {
+            gameOverModal.classList.add('hidden');
+            gamePlay.classList.add('hidden');
+            gameSelection.classList.remove('hidden');
+        });
+
+        // 设置按钮
+        document.getElementById('settings-btn').addEventListener('click', () => {
+            settingsModal.classList.remove('hidden');
+        });
+
+        // 关闭设置模态框
+        document.getElementById('close-settings-modal').addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
+        });
+
+        // 保存应用设置
+        document.getElementById('save-app-settings').addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
+            showNotification('设置已保存');
+        });
+
+        // 主题切换
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const icon = document.querySelector('#theme-toggle i');
+            if (icon.classList.contains('fa-moon-o')) {
+                icon.classList.remove('fa-moon-o');
+                icon.classList.add('fa-sun-o');
+                document.documentElement.classList.add('dark');
+            } else {
+                icon.classList.remove('fa-sun-o');
+                icon.classList.add('fa-moon-o');
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // 清空游戏记录
+        document.getElementById('clear-history').addEventListener('click', () => {
+            if (confirm('确定要清空所有游戏记录吗？')) {
+                document.getElementById('game-history').innerHTML = '<p class="text-neutral-500 text-center py-4">暂无游戏记录</p>';
+                showNotification('游戏记录已清空');
+            }
+        });
+
+        // 加载游戏记录
+        document.querySelectorAll('[data-load]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                showNotification('加载功能开发中');
+            });
+        });
+
+        // 初始化游戏
+        function initGame() {
+            // 重置游戏状态
+            gameState.gameBoard = [];
+            gameState.moveHistory = [];
+            gameState.currentPlayer = 'player';
+            gameState.gameOver = false;
+            gameState.scores = {
+                player: 0,
+                computer: 0
+            };
+            
+            // 根据游戏类型设置棋盘大小
+            switch (gameState.currentGame) {
+                case 'go':
+                    gameState.boardSize = 19;
+                    break;
+                case 'chinese-chess':
+                    gameState.boardSize = 9;
+                    break;
+                case 'chess':
+                    gameState.boardSize = 8;
+                    break;
+                case 'checkers':
+                    gameState.boardSize = 8;
+                    break;
+                case 'gobang':
+                    gameState.boardSize = 15;
+                    break;
+                case 'reversi':
+                    gameState.boardSize = 8;
+                    break;
+                default:
+                    gameState.boardSize = 8;
+            }
+            
+            // 初始化棋盘
+            for (let i = 0; i < gameState.boardSize; i++) {
+                gameState.gameBoard[i] = [];
+                for (let j = 0; j < gameState.boardSize; j++) {
+                    gameState.gameBoard[i][j] = null;
+                }
+            }
+            
+            // 特定游戏的初始化
+            if (gameState.currentGame === 'chess') {
+                // 初始化国际象棋棋盘
+                initializeChessBoard();
+            } else if (gameState.currentGame === 'reversi') {
+                // 初始化黑白棋棋盘
+                initializeReversiBoard();
+            }
+            
+            // 渲染棋盘
+            renderBoard();
+            
+            // 更新分数
+            updateScores();
+            
+            // 更新当前玩家
+            updateCurrentPlayer();
+        }
+
+        // 初始化国际象棋棋盘
+        function initializeChessBoard() {
+            // 初始化白方棋子
+            gameState.gameBoard[0][0] = { type: 'rook', color: 'white' };
+            gameState.gameBoard[0][1] = { type: 'knight', color: 'white' };
+            gameState.gameBoard[0][2] = { type: 'bishop', color: 'white' };
+            gameState.gameBoard[0][3] = { type: 'queen', color: 'white' };
+            gameState.gameBoard[0][4] = { type: 'king', color: 'white' };
+            gameState.gameBoard[0][5] = { type: 'bishop', color: 'white' };
+            gameState.gameBoard[0][6] = { type: 'knight', color: 'white' };
+            gameState.gameBoard[0][7] = { type: 'rook', color: 'white' };
+            
+            // 初始化白方兵
+            for (let i = 0; i < 8; i++) {
+                gameState.gameBoard[1][i] = { type: 'pawn', color: 'white' };
+            }
+            
+            // 初始化黑方棋子
+            gameState.gameBoard[7][0] = { type: 'rook', color: 'black' };
+            gameState.gameBoard[7][1] = { type: 'knight', color: 'black' };
+            gameState.gameBoard[7][2] = { type: 'bishop', color: 'black' };
+            gameState.gameBoard[7][3] = { type: 'queen', color: 'black' };
+            gameState.gameBoard[7][4] = { type: 'king', color: 'black' };
+            gameState.gameBoard[7][5] = { type: 'bishop', color: 'black' };
+            gameState.gameBoard[7][6] = { type: 'knight', color: 'black' };
+            gameState.gameBoard[7][7] = { type: 'rook', color: 'black' };
+            
+            // 初始化黑方兵
+            for (let i = 0; i < 8; i++) {
+                gameState.gameBoard[6][i] = { type: 'pawn', color: 'black' };
+            }
+        }
+
+        // 初始化黑白棋棋盘
+        function initializeReversiBoard() {
+            // 中间四个棋子
+            gameState.gameBoard[3][3] = { type: 'piece', color: 'white' };
+            gameState.gameBoard[3][4] = { type: 'piece', color: 'black' };
+            gameState.gameBoard[4][3] = { type: 'piece', color: 'black' };
+            gameState.gameBoard[4][4] = { type: 'piece', color: 'white' };
+        }
+
+        // 渲染棋盘
+        function renderBoard() {
+            // 清空棋盘
+            gameBoard.innerHTML = '';
+            
+            // 设置棋盘大小
+            const cellSize = Math.min(
+                Math.floor((window.innerWidth - 40) / gameState.boardSize),
+                Math.floor((window.innerHeight - 200) / gameState.boardSize)
+            );
+            gameBoard.style.width = `${cellSize * gameState.boardSize}px`;
+            gameBoard.style.height = `${cellSize * gameState.boardSize}px`;
+            
+            // 创建棋盘格子
+            for (let i = 0; i < gameState.boardSize; i++) {
+                for (let j = 0; j < gameState.boardSize; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'absolute cursor-pointer transition-all duration-200';
+                    cell.style.width = `${cellSize}px`;
+                    cell.style.height = `${cellSize}px`;
+                    cell.style.left = `${j * cellSize}px`;
+                    cell.style.top = `${i * cellSize}px`;
+                    
+                    // 根据游戏类型设置背景
+                    if (gameState.currentGame === 'chess' || gameState.currentGame === 'checkers') {
+                        cell.className += (i + j) % 2 === 0 ? 
+                            ' bg-[#F0D9B5] hover:bg-[#E0C9A5]' : 
+                            ' bg-[#B58863] hover:bg-[#A57853]';
+                    } else {
+                        cell.className += ' bg-board hover:bg-board/80';
+                        // 添加网格线
+                        cell.style.border = '1px solid rgba(0, 0, 0, 0.2)';
+                    }
+                    
+                    // 存储位置信息
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    
+                    // 添加点击事件
+                    cell.addEventListener('click', () => handleCellClick(i, j));
+                    
+                    // 添加棋子
+                    if (gameState.gameBoard[i][j]) {
+                        const piece = document.createElement('div');
+                        piece.className = 'absolute inset-1 rounded-full m-auto piece-hover transition-all duration-200';
+                        
+                        if (gameState.currentGame === 'chess') {
+                            // 国际象棋棋子
+                            const chessPiece = gameState.gameBoard[i][j];
+                            piece.className += ` flex items-center justify-center text-3xl font-bold`;
+                            
+                            // 根据棋子类型和颜色设置内容
+                            if (chessPiece.color === 'white') {
+                                piece.style.color = 'white';
+                            } else {
+                                piece.style.color = 'black';
+                            }
+                            
+                            switch (chessPiece.type) {
+                                case 'pawn':
+                                    piece.textContent = chessPiece.color === 'white' ? '♙' : '♟';
+                                    break;
+                                case 'rook':
+                                    piece.textContent = chessPiece.color === 'white' ? '♖' : '♜';
+                                    break;
+                                case 'knight':
+                                    piece.textContent = chessPiece.color === 'white' ? '♘' : '♞';
+                                    break;
+                                case 'bishop':
+                                    piece.textContent = chessPiece.color === 'white' ? '♗' : '♝';
+                                    break;
+                                case 'queen':
+                                    piece.textContent = chessPiece.color === 'white' ? '♕' : '♛';
+                                    break;
+                                case 'king':
+                                    piece.textContent = chessPiece.color === 'white' ? '♔' : '♚';
+                                    break;
+                            }
+                        } else if (gameState.currentGame === 'chinese-chess') {
+                            // 中国象棋棋子
+                            const chessPiece = gameState.gameBoard[i][j];
+                            piece.className += ` flex items-center justify-center text-lg font-bold`;
+                            
+                            if (chessPiece.color === 'red') {
+                                piece.style.backgroundColor = 'red';
+                                piece.style.color = 'white';
+                            } else {
+                                piece.style.backgroundColor = 'black';
+                                piece.style.color = 'white';
+                            }
+                            
+                            // 设置棋子文字
+                            switch (chessPiece.type) {
+                                case 'pawn':
+                                    piece.textContent = chessPiece.color === 'red' ? '兵' : '卒';
+                                    break;
+                                case 'rook':
+                                    piece.textContent = '車';
+                                    break;
+                                case 'knight':
+                                    piece.textContent = '馬';
+                                    break;
+                                case 'bishop':
+                                    piece.textContent = chessPiece.color === 'red' ? '相' : '象';
+                                    break;
+                                case 'advisor':
+                                    piece.textContent = chessPiece.color === 'red' ? '仕' : '士';
+                                    break;
+                                case 'general':
+                                    piece.textContent = chessPiece.color === 'red' ? '帥' : '將';
+                                    break;
+                                case 'cannon':
+                                    piece.textContent = '炮';
+                                    break;
+                            }
+                        } else {
+                            // 其他棋类（围棋、五子棋、黑白棋）
+                            piece.style.backgroundColor = gameState.gameBoard[i][j].color === 'black' ? 'black' : 'white';
+                            if (gameState.gameBoard[i][j].color === 'white') {
+                                piece.style.border = '1px solid rgba(0, 0, 0, 0.2)';
+                            }
+                        }
+                        
+                        cell.appendChild(piece);
+                    }
+                    
+                    gameBoard.appendChild(cell);
+                }
+            }
+        }
+
+        // 处理格子点击
+        function handleCellClick(row, col) {
+            // 如果游戏已结束，不处理点击
+            if (gameState.gameOver) return;
+            
+            // 如果不是玩家回合，不处理点击
+            if (gameState.currentPlayer !== 'player') return;
+            
+            // 根据游戏类型处理点击
+            if (gameState.currentGame === 'chess') {
+                handleChessMove(row, col);
+            } else if (gameState.currentGame === 'reversi') {
+                handleReversiMove(row, col);
+            } else {
+                // 通用落子逻辑
+                if (!gameState.gameBoard[row][col]) {
+                    // 记录移动
+                    gameState.moveHistory.push({
+                        row,
+                        col,
+                        player: 'player',
+                        piece: { type: 'piece', color: gameState.playerColor }
+                    });
+                    
+                    // 落子
+                    gameState.gameBoard[row][col] = { type: 'piece', color: gameState.playerColor };
+                    
+                    // 更新棋盘
+                    renderBoard();
+                    
+                    // 检查游戏是否结束
+                    if (checkGameOver()) {
+                        return;
+                    }
+                    
+                    // 切换到电脑回合
+                    gameState.currentPlayer = 'computer';
+                    updateCurrentPlayer();
+                    
+                    // 电脑思考一段时间后落子
+                    setTimeout(() => {
+                        computerMove();
+                    }, 1000);
+                }
+            }
+        }
+
+        // 处理国际象棋移动
+        function handleChessMove(row, col) {
+            // 简单实现，实际应该检查棋子移动规则
+            if (!gameState.gameBoard[row][col] || 
+                (gameState.gameBoard[row][col].color !== gameState.playerColor)) {
+                // 如果格子为空或有对方棋子，不处理（简化版）
+                return;
+            }
+            
+            // 记录移动
+            gameState.moveHistory.push({
+                row,
+                col,
+                player: 'player',
+                piece: gameState.gameBoard[row][col]
+            });
+            
+            // 更新棋盘（简化版，实际应处理棋子移动）
+            renderBoard();
+            
+            // 检查游戏是否结束
+            if (checkGameOver()) {
+                return;
+            }
+            
+            // 切换到电脑回合
+            gameState.currentPlayer = 'computer';
+            updateCurrentPlayer();
+            
+            // 电脑思考一段时间后落子
+            setTimeout(() => {
+                computerMove();
+            }, 1500);
+        }
+
+        // 处理黑白棋移动
+        function handleReversiMove(row, col) {
+            // 检查是否可以落子（简化版）
+            if (gameState.gameBoard[row][col]) {
+                return;
+            }
+            
+            // 记录移动
+            gameState.moveHistory.push({
+                row,
+                col,
+                player: 'player',
+                piece: { type: 'piece', color: gameState.playerColor }
+            });
+            
+            // 落子
+            gameState.gameBoard[row][col] = { type: 'piece', color: gameState.playerColor };
+            
+            // 翻转棋子（简化版）
+            flipReversiPieces(row, col, gameState.playerColor);
+            
+            // 更新棋盘
+            renderBoard();
+            
+            // 更新分数
+            updateScores();
+            
+            // 检查游戏是否结束
+            if (checkGameOver()) {
+                return;
+            }
+            
+            // 切换到电脑回合
+            gameState.currentPlayer = 'computer';
+            updateCurrentPlayer();
+            
+            // 电脑思考一段时间后落子
+            setTimeout(() => {
+                computerMove();
+            }, 1000);
+        }
+
+        // 翻转黑白棋棋子
+        function flipReversiPieces(row, col, color) {
+            // 检查八个方向
+            const directions = [
+                [-1, -1], [-1, 0], [-1, 1],
+                [0, -1],          [0, 1],
+                [1, -1],  [1, 0], [1, 1]
+            ];
+            
+            const opponentColor = color === 'black' ? 'white' : 'black';
+            
+            for (const [dx, dy] of directions) {
+                let x = row + dx;
+                let y = col + dy;
+                let piecesToFlip = [];
+                
+                while (x >= 0 && x < gameState.boardSize && y >= 0 && y < gameState.boardSize) {
+                    if (!gameState.gameBoard[x][y]) {
+                        break;
+                    }
+                    
+                    if (gameState.gameBoard[x][y].color === opponentColor) {
+                        piecesToFlip.push({ x, y });
+                    } else if (gameState.gameBoard[x][y].color === color) {
+                        // 找到自己的棋子，可以翻转
+                        for (const { x, y } of piecesToFlip) {
+                            gameState.gameBoard[x][y].color = color;
+                        }
+                        break;
+                    }
+                    
+                    x += dx;
+                    y += dy;
+                }
+            }
+        }
+
+        // 电脑落子
+        function computerMove() {
+            if (gameState.gameOver) return;
+            
+            let moveMade = false;
+            
+            if (gameState.currentGame === 'chess') {
+                // 国际象棋电脑落子（简化版）
+                moveMade = makeChessComputerMove();
+            } else if (gameState.currentGame === 'reversi') {
+                // 黑白棋电脑落子
+                moveMade = makeReversiComputerMove();
+            } else {
+                // 通用电脑落子逻辑
+                moveMade = makeGenericComputerMove();
+            }
+            
+            if (moveMade) {
+                // 更新棋盘
+                renderBoard();
+                
+                // 更新分数
+                updateScores();
+                
+                // 检查游戏是否结束
+                if (checkGameOver()) {
+                    return;
+                }
+                
+                // 切换到玩家回合
+                gameState.currentPlayer = 'player';
+                updateCurrentPlayer();
+            } else {
+                // 如果电脑无法落子，跳过回合
+                gameState.currentPlayer = 'player';
+                updateCurrentPlayer();
+                showNotification('电脑无法落子，你继续');
+            }
+        }
+
+        // 通用电脑落子逻辑
+        function makeGenericComputerMove() {
+            // 简单随机落子
+            const availableMoves = [];
+            
+            for (let i = 0; i < gameState.boardSize; i++) {
+                for (let j = 0; j < gameState.boardSize; j++) {
+                    if (!gameState.gameBoard[i][j]) {
+                        availableMoves.push({ row: i, col: j });
+                    }
+                }
+            }
+            
+            if (availableMoves.length > 0) {
+                // 根据难度调整AI水平
+                let move;
+                
+                if (gameState.difficulty === 'easy') {
+                    // 简单难度：随机选择
+                    move = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+                } else if (gameState.difficulty === 'medium') {
+                    // 中等难度：尝试连成线
+                    move = findBestMove(availableMoves);
+                } else {
+                    // 困难难度：更聪明的选择
+                    move = findBestMove(availableMoves);
+                }
+                
+                // 记录移动
+                gameState.moveHistory.push({
+                    row: move.row,
+                    col: move.col,
+                    player: 'computer',
+                    piece: { type: 'piece', color: gameState.playerColor === 'black' ? 'white' : 'black' }
+                });
+                
+                // 落子
+                gameState.gameBoard[move.row][move.col] = { type: 'piece', color: gameState.playerColor === 'black' ? 'white' : 'black' };
+                
+                return true;
+            }
+            
+            return false;
+        }
+
+        // 寻找最佳移动（中等和困难难度）
+        function findBestMove(availableMoves) {
+            // 简单实现：寻找能形成最长连线的位置
+            let bestMove = null;
+            let bestScore = -Infinity;
+            
+            const computerColor = gameState.playerColor === 'black' ? 'white' : 'black';
+            
+            for (const move of availableMoves) {
+                // 模拟落子
+                gameState.gameBoard[move.row][move.col] = { type: 'piece', color: computerColor };
+                
+                // 计算得分
+                const score = evaluateBoard(move.row, move.col, computerColor);
+                
+                // 撤销模拟
+                gameState.gameBoard[move.row][move.col] = null;
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove = move;
+                }
+            }
+            
+            return bestMove || availableMoves[Math.floor(Math.random() * availableMoves.length)];
+        }
+
+        // 评估棋盘
+        function evaluateBoard(row, col, color) {
+            // 简单实现：计算连成线的棋子数
+            const directions = [
+                [-1, -1], [-1, 0], [-1, 1],
+                [0, -1],          [0, 1],
+                [1, -1],  [1, 0], [1, 1]
+            ];
+            
+            let maxLineLength = 0;
+            
+            for (const [dx, dy] of directions) {
+                let lineLength = 1;
+                
+                // 正方向
+                let x = row + dx;
+                let y = col + dy;
+                
+                while (x >= 0 && x < gameState.boardSize && y >= 0 && y < gameState.boardSize &&
+                       gameState.gameBoard[x][y] && gameState.gameBoard[x][y].color === color) {
+                    lineLength++;
+                    x += dx;
+                    y += dy;
+                }
+                
+                // 反方向
+                x = row - dx;
+                y = col - dy;
+                
+                while (x >= 0 && x < gameState.boardSize && y >= 0 && y < gameState.boardSize &&
+                       gameState.gameBoard[x][y] && gameState.gameBoard[x][y].color === color) {
+                    lineLength++;
+                    x -= dx;
+                    y -= dy;
+                }
+                
+                if (lineLength > maxLineLength) {
+                    maxLineLength = lineLength;
+                }
+            }
+            
+            return maxLineLength;
+        }
+
+        // 国际象棋电脑落子
+        function makeChessComputerMove() {
+            // 简化版：随机移动一个棋子
+            const computerColor = gameState.playerColor === 'white' ? 'black' : 'white';
+            const availablePieces = [];
+            
+            // 找出所有电脑的棋子
+            for (let i = 0; i < gameState.boardSize; i++) {
+                for (let j = 0; j < gameState.boardSize; j++) {
+                    if (gameState.gameBoard[i][j] && gameState.gameBoard[i][j].color === computerColor) {
+                        availablePieces.push({ row: i, col: j });
+                    }
+                }
+            }
+            
+            if (availablePieces.length > 0) {
+                // 随机选择一个棋子
+                const piece = availablePieces[Math.floor(Math.random() * availablePieces.length)];
+                
+                // 简单移动逻辑（实际应根据棋子类型和规则移动）
+                const possibleMoves = getPossibleChessMoves(piece.row, piece.col);
+                
+                if (possibleMoves.length > 0) {
+                    const move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                    
+                    // 记录移动
+                    gameState.moveHistory.push({
+                        fromRow: piece.row,
+                        fromCol: piece.col,
+                        toRow: move.row,
+                        toCol: move.col,
+                        player: 'computer',
+                        piece: gameState.gameBoard[piece.row][piece.col]
+                    });
+                    
+                    // 移动棋子
+                    gameState.gameBoard[move.row][move.col] = gameState.gameBoard[piece.row][piece.col];
+                    gameState.gameBoard[piece.row][piece.col] = null;
+                    
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        // 获取国际象棋可能的移动
+        function getPossibleChessMoves(row, col) {
+            // 简化版：返回周围的空位
+            const possibleMoves = [];
+            const directions = [
+                [-1, -1], [-1, 0], [-1, 1],
+                [0, -1],          [0, 1],
+                [1, -1],  [1, 0], [1, 1]
+            ];
+            
+            for (const [dx, dy] of directions) {
+                const newRow = row + dx;
+                const newCol = col + dy;
+                
+                if (newRow >= 0 && newRow < gameState.boardSize && 
+                    newCol >= 0 && newCol < gameState.boardSize &&
+                    (!gameState.gameBoard[newRow][newCol] || 
+                     gameState.gameBoard[newRow][newCol].color !== gameState.gameBoard[row][col].color)) {
+                    possibleMoves.push({ row: newRow, col: newCol });
+                }
+            }
+            
+            return possibleMoves;
+        }
+
+        // 黑白棋电脑落子
+        function makeReversiComputerMove() {
+            // 找出所有可能的落子位置
+            const availableMoves = [];
+            const computerColor = gameState.playerColor === 'black' ? 'white' : 'black';
+            
+            for (let i = 0; i < gameState.boardSize; i++) {
+                for (let j = 0; j < gameState.boardSize; j++) {
+                    if (!gameState.gameBoard[i][j]) {
+                        // 模拟落子，检查是否能翻转棋子
+                        gameState.gameBoard[i][j] = { type: 'piece', color: computerColor };
+                        const flippedCount = simulateFlipReversiPieces(i, j, computerColor);
+                        gameState.gameBoard[i][j] = null;
+                        
+                        if (flippedCount > 0) {
+                            availableMoves.push({ row: i, col: j, flippedCount });
+                        }
+                    }
+                }
+            }
+            
+            if (availableMoves.length > 0) {
+                let move;
+                
+                if (gameState.difficulty === 'easy') {
+                    // 简单难度：随机选择
+                    move = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+                } else {
+                    // 中等和困难难度：选择能翻转最多棋子的位置
+                    availableMoves.sort((a, b) => b.flippedCount - a.flippedCount);
+                    move = availableMoves[0];
+                }
+                
+                // 记录移动
+                gameState.moveHistory.push({
+                    row: move.row,
+                    col: move.col,
+                    player: 'computer',
+                    piece: { type: 'piece', color: computerColor }
+                });
+                
+                // 落子
+                gameState.gameBoard[move.row][move.col] = { type: 'piece', color: computerColor };
+                
+                // 翻转棋子
+                flipReversiPieces(move.row, move.col, computerColor);
+                
+                return true;
+            }
+            
+            return false;
+        }
+
+        // 模拟翻转黑白棋棋子
+        function simulateFlipReversiPieces(row, col, color) {
+            // 检查八个方向
+            const directions = [
+                [-1, -1], [-1, 0], [-1, 1],
+                [0, -1],          [0, 1],
+                [1, -1],  [1, 0], [1, 1]
+            ];
+            
+            const opponentColor = color === 'black' ? 'white' : 'black';
+            let totalFlipped = 0;
+            
+            for (const [dx, dy] of directions) {
+                let x = row + dx;
+                let y = col + dy;
+                let piecesToFlip = [];
+                
+                while (x >= 0 && x < gameState.boardSize && y >= 0 && y < gameState.boardSize) {
+                    if (!gameState.gameBoard[x][y]) {
+                        break;
+                    }
+                    
+                    if (gameState.gameBoard[x][y].color === opponentColor) {
+                        piecesToFlip.push({ x, y });
+                    } else if (gameState.gameBoard[x][y].color === color) {
+                        // 找到自己的棋子，可以翻转
+                        totalFlipped += piecesToFlip.length;
+                        break;
+                    }
+                    
+                    x += dx;
+                    y += dy;
+                }
+            }
+            
+            return totalFlipped;
+        }
+
+        // 检查游戏是否结束
+        function checkGameOver() {
+            // 根据游戏类型检查
+            if (gameState.currentGame === 'reversi') {
+                return checkReversiGameOver();
+            } else if (gameState.currentGame === 'gobang') {
+                return checkGobangGameOver();
+            }
+            
+            // 通用检查：棋盘已满
+            let isBoardFull = true;
+            
+            for (let i = 0; i < gameState.boardSize; i++) {
+                for (let j = 0; j < gameState.boardSize; j++) {
+                    if (!gameState.gameBoard[i][j]) {
+                        isBoardFull = false;
+                        break;
+                    }
+                }
+                
+                if (!isBoardFull) break;
+            }
+            
+            if (isBoardFull) {
+                // 比较分数
+                if (gameState.scores.player > gameState.scores.computer) {
+                    endGame('player');
+                } else if (gameState.scores.player < gameState.scores.computer) {
+                    endGame('computer');
+                } else {
+                    endGame('tie');
+                }
+                
+                return true;
+            }
+            
+            return false;
+        }
+
+        // 检查黑白棋游戏是否结束
+        function checkReversiGameOver() {
+            // 检查双方是否都无法落子
+            const playerColor = gameState.playerColor;
+            const computerColor = playerColor === 'black' ? 'white' : 'black';
+            
+            let playerCanMove = false;
+            let computerCanMove = false;
+            
+            // 检查玩家是否能落子
+            for (let i = 0; i < gameState.boardSize; i++) {
+                for (let j = 0; j < gameState.boardSize; j++) {
+                    if (!gameState.gameBoard[i][j]) {
+                        // 模拟落子
+                        gameState.gameBoard[i][j] = { type: 'piece', color: playerColor };
+                        const flippedCount = simulateFlipReversiPieces(i, j, playerColor);
+                        gameState.gameBoard[i][j] = null;
+                        
+                        if (flippedCount > 0) {
+                            playerCanMove = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (playerCanMove) break;
+            }
+            
+            // 检查电脑是否能落子
+            for (let i = 0; i < gameState.boardSize; i++) {
+                for (let j = 0; j < gameState.boardSize; j++) {
+                    if (!gameState.gameBoard[i][j]) {
+                        // 模拟落子
+                        gameState.gameBoard[i][j] = { type: 'piece', color: computerColor };
+                        const flippedCount = simulateFlipReversiPieces(i, j, computerColor);
+                        gameState.gameBoard[i][j] = null;
+                        
+                        if (flippedCount > 0) {
+                            computerCanMove = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (computerCanMove) break;
+            }
+            
+            // 如果双方都不能落子，游戏结束
+            if (!playerCanMove && !computerCanMove) {
+                // 更新最终分数
+                updateScores();
+                
+                // 比较分数
+                if (gameState.scores.player > gameState.scores.computer) {
+                    endGame('player');
+                } else if (gameState.scores.player < gameState.scores.computer) {
+                    endGame('computer');
+                } else {
+                    endGame('tie');
+                }
+                
+                return true;
+            }
+            
+            return false;
+        }
+
+        // 检查五子棋游戏是否结束
+        function checkGobangGameOver() {
+            const directions = [
+                [0, 1],  // 水平
+                [1, 0],  // 垂直
+                [1, 1],  // 对角线
+                [1, -1]  // 反对角线
+            ];
+            
+            for (let i = 0; i < gameState.boardSize; i++) {
+                for (let j = 0; j < gameState.boardSize; j++) {
+                    if (gameState.gameBoard[i][j]) {
+                        const color = gameState.gameBoard[i][j].color;
+                        
+                        for (const [dx, dy] of directions) {
+                            let count = 1;
+                            
+                            // 正方向
+                            let x = i + dx;
+                            let y = j + dy;
+                            
+                            while (x >= 0 && x < gameState.boardSize && y >= 0 && y < gameState.boardSize &&
+                                   gameState.gameBoard[x][y] && gameState.gameBoard[x][y].color === color) {
+                                count++;
+                                x += dx;
+                                y += dy;
+                            }
+                            
+                            // 反方向
+                            x = i - dx;
+                            y = j - dy;
+                            
+                            while (x >= 0 && x < gameState.boardSize && y >= 0 && y < gameState.boardSize &&
+                                   gameState.gameBoard[x][y] && gameState.gameBoard[x][y].color === color) {
+                                count++;
+                                x -= dx;
+                                y -= dy;
+                            }
+                            
+                            if (count >= 5) {
+                                // 有五子连珠，游戏结束
+                                if (color === gameState.playerColor) {
+                                    endGame('player');
+                                } else {
+                                    endGame('computer');
+                                }
+                                
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 检查棋盘是否已满
+            let isBoardFull = true;
+            
+            for (let i = 0; i < gameState.boardSize; i++) {
+                for (let j = 0; j < gameState.boardSize; j++) {
+                    if (!gameState.gameBoard[i][j]) {
+                        isBoardFull = false;
+                        break;
+                    }
+                }
+                
+                if (!isBoardFull) break;
+            }
+            
+            if (isBoardFull) {
+                endGame('tie');
+                return true;
+            }
+            
+            return false;
+        }
+
+        // 结束游戏
+        function endGame(winner) {
+            gameState.gameOver = true;
+            
+            // 保存游戏记录
+            saveGameRecord(winner);
+            
+            // 显示游戏结束模态框
+            if (winner === 'player') {
+                winnerTextEl.textContent = '恭喜，你赢了！';
+                winnerMessageEl.textContent = `你以${gameState.scores.player}:${gameState.scores.computer}的比分战胜了电脑。`;
+                winnerIconEl.className = 'mx-auto w-16 h-16 flex items-center justify-center bg-green-100 text-green-500 rounded-full mb-4';
+                winnerIconEl.innerHTML = '<i class="fa fa-trophy text-3xl"></i>';
+            } else if (winner === 'computer') {
+                winnerTextEl.textContent = '很遗憾，你输了。';
+                winnerMessageEl.textContent = `电脑以${gameState.scores.computer}:${gameState.scores.player}的比分战胜了你。`;
+                winnerIconEl.className = 'mx-auto w-16 h-16 flex items-center justify-center bg-red-100 text-red-500 rounded-full mb-4';
+                winnerIconEl.innerHTML = '<i class="fa fa-frown-o text-3xl"></i>';
+            } else {
+                winnerTextEl.textContent = '平局！';
+                winnerMessageEl.textContent = '双方势均力敌，不分胜负。';
+                winnerIconEl.className = 'mx-auto w-16 h-16 flex items-center justify-center bg-yellow-100 text-yellow-500 rounded-full mb-4';
+                winnerIconEl.innerHTML = '<i class="fa fa-handshake-o text-3xl"></i>';
+            }
+            
+            gameOverModal.classList.remove('hidden');
+        }
+
+        // 更新分数
+        function updateScores() {
+            if (gameState.currentGame === 'reversi') {
+                // 黑白棋分数计算
+                gameState.scores = {
+                    player: 0,
+                    computer: 0
+                };
+                
+                const playerColor = gameState.playerColor;
+                const computerColor = playerColor === 'black' ? 'white' : 'black';
+                
+                for (let i = 0; i < gameState.boardSize; i++) {
+                    for (let j = 0; j < gameState.boardSize; j++) {
+                        if (gameState.gameBoard[i][j]) {
+                            if (gameState.gameBoard[i][j].color === playerColor) {
+                                gameState.scores.player++;
+                            } else {
+                                gameState.scores.computer++;
+                            }
+                        }
+                    }
+                }
+            } else {
+                // 其他游戏的分数计算（简化版）
+                gameState.scores = {
+                    player: gameState.moveHistory.filter(move => move.player === 'player').length,
+                    computer: gameState.moveHistory.filter(move => move.player === 'computer').length
+                };
+            }
+            
+            // 更新UI
+            playerScoreEl.textContent = gameState.scores.player;
+            computerScoreEl.textContent = gameState.scores.computer;
+        }
+
+        // 更新当前玩家
+        function updateCurrentPlayer() {
+            currentPlayerColorEl.className = `w-5 h-5 rounded-full ${gameState.currentPlayer === 'player' ? 
+                gameState.playerColor === 'black' ? 'bg-black' : 'bg-white border border-neutral-300' : 
+                gameState.playerColor === 'black' ? 'bg-white border border-neutral-300' : 'bg-black'} mr-2`;
+            currentPlayerTextEl.textContent = gameState.currentPlayer === 'player' ? '你' : '电脑';
+        }
+
+        // 保存游戏
+        function saveGame() {
+            // 创建游戏数据对象
+            const gameData = {
+                gameType: gameState.currentGame,
+                boardSize: gameState.boardSize,
+                board: gameState.gameBoard,
+                moveHistory: gameState.moveHistory,
+                currentPlayer: gameState.currentPlayer,
+                scores: gameState.scores,
+                playerColor: gameState.playerColor,
+                difficulty: gameState.difficulty,
+                timestamp: Date.now()
+            };
+            
+            // 将游戏数据保存到localStorage
+            localStorage.setItem(`game_${gameData.timestamp}`, JSON.stringify(gameData));
+        }
+
+        // 保存游戏记录
+        function saveGameRecord(winner) {
+            // 创建游戏记录对象
+            const gameRecord = {
+                gameType: gameState.currentGame,
+                result: winner === 'player' ? 'win' : winner === 'computer' ? 'lose' : 'tie',
+                scores: gameState.scores,
+                timestamp: Date.now()
+            };
+            
+            // 获取已有的游戏记录
+            let gameRecords = JSON.parse(localStorage.getItem('gameRecords') || '[]');
+            
+            // 添加新记录
+            gameRecords.push(gameRecord);
+            
+            // 保存回localStorage
+            localStorage.setItem('gameRecords', JSON.stringify(gameRecords));
+            
+            // 更新游戏记录UI
+            updateGameHistoryUI();
+        }
+
+        // 更新游戏记录UI
+        function updateGameHistoryUI() {
+            // 获取游戏记录
+            const gameRecords = JSON.parse(localStorage.getItem('gameRecords') || '[]');
+            
+            // 清空当前记录
+            const historyContainer = document.getElementById('game-history');
+            historyContainer.innerHTML = '';
+            
+            // 添加新记录
+            if (gameRecords.length === 0) {
+                historyContainer.innerHTML = '<p class="text-neutral-500 text-center py-4">暂无游戏记录</p>';
+                return;
+            }
+            
+            // 按时间倒序排列
+            gameRecords.sort((a, b) => b.timestamp - a.timestamp);
+            
+            // 显示最近的3条记录
+            const recentRecords = gameRecords.slice(0, 3);
+            
+            recentRecords.forEach(record => {
+                const date = new Date(record.timestamp);
+                const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
+                
+                const resultClass = record.result === 'win' ? 'bg-green-100 text-green-800' : 
+                                   record.result === 'lose' ? 'bg-red-100 text-red-800' : 
+                                   'bg-yellow-100 text-yellow-800';
+                const resultText = record.result === 'win' ? '胜利' : 
+                                  record.result === 'lose' ? '失败' : 
+                                  '平局';
+                
+                const recordElement = document.createElement('div');
+                recordElement.className = 'flex items-center justify-between p-3 border border-neutral-100 rounded-lg hover:bg-neutral-50 transition-colors';
+                recordElement.innerHTML = `
+                    <div>
+                        <h4 class="font-medium">${getGameName(record.gameType)}</h4>
+                        <p class="text-sm text-neutral-500">${formattedDate}</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2 py-1 ${resultClass} text-xs rounded-full">${resultText}</span>
+                        <button class="text-primary hover:text-primary/80 transition-colors" data-load="${record.gameType}-${record.timestamp}">
+                            <i class="fa fa-play"></i>
+                        </button>
+                    </div>
+                `;
+                
+                historyContainer.appendChild(recordElement);
+            });
+            
+            // 为加载按钮添加事件
+            document.querySelectorAll('[data-load]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    showNotification('加载功能开发中');
+                });
+            });
+        }
+
+        // 显示通知
+        function showNotification(message) {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.className = 'fixed bottom-4 right-4 bg-neutral-800 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-y-16 opacity-0';
+            notification.textContent = message;
+            
+            // 添加到页面
+            document.body.appendChild(notification);
+            
+            // 显示通知
+            setTimeout(() => {
+                notification.classList.remove('translate-y-16', 'opacity-0');
+            }, 100);
+            
+            // 3秒后隐藏通知
+            setTimeout(() => {
+                notification.classList.add('translate-y-16', 'opacity-0');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // 获取游戏名称
+        function getGameName(gameType) {
+            const gameNames = {
+                'go': '围棋',
+                'chinese-chess': '中国象棋',
+                'chess': '国际象棋',
+                'checkers': '跳棋',
+                'gobang': '五子棋',
+                'reversi': '黑白棋'
+            };
+            
+            return gameNames[gameType] || gameType;
+        }
+
+        // 获取难度名称
+        function getDifficultyName(difficulty) {
+            const difficultyNames = {
+                'easy': '简单',
+                'medium': '中等',
+                'hard': '困难'
+            };
+            
+            return difficultyNames[difficulty] || difficulty;
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 更新游戏记录UI
+            updateGameHistoryUI();
+        });
+
+        // 窗口大小改变时重新渲染棋盘
+        window.addEventListener('resize', () => {
+            if (gameState.currentGame) {
+                renderBoard();
+            }
+        });
+    </script>
+</body>
+</html>
+    
