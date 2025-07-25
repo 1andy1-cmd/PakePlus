@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泡泡解压乐园</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            perspective: 1000px;
+        }
+        
+        .container {
+            max-width: 900px;
+            padding: 30px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            transform-style: preserve-3d;
+            animation: floatContainer 8s infinite ease-in-out;
+        }
+        
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            text-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            animation: pulse 2s infinite;
+            background: linear-gradient(to right, #ff9966, #ff5e62, #ff9966);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+            font-weight: 800;
+        }
+        
+        .subtitle {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px 40px;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat {
+            font-size: 1.8rem;
+            min-width: 180px;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #ffeb3b;
+            font-size: 2.5rem;
+            display: block;
+            margin-top: 8px;
+            text-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
+        }
+        
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            font-size: 1.3rem;
+            line-height: 1.7;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff9966, #ff5e62);
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 7px 15px rgba(255, 94, 98, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(255, 94, 98, 0.6);
+        }
+        
+        button:active {
+            transform: translateY(2px);
+        }
+        
+        #muteBtn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.3));
+            box-shadow: 0 5px 25px rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: transform 0.1s;
+            animation: float 8s infinite ease-in-out;
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
+        
+        .bubble:hover {
+            transform: scale(1.15);
+        }
+        
+        .pop {
+            animation: pop 0.4s forwards;
+        }
+        
+        .combo-display {
+            position: fixed;
+            font-size: 5rem;
+            font-weight: 800;
+            color: #ffeb3b;
+            text-shadow: 0 0 20px rgba(255, 235, 59, 0.8);
+            pointer-events: none;
+            z-index: 50;
+            animation: comboFloat 1.5s forwards;
+            opacity: 0;
+        }
+        
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particle-fade 1.2s forwards;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
+            25% { transform: translateY(-20px) translateX(10px) rotate(5deg); }
+            50% { transform: translateY(-10px) translateX(-10px) rotate(-5deg); }
+            75% { transform: translateY(10px) translateX(15px) rotate(3deg); }
+        }
+        
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.8); opacity: 0.7; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        
+        @keyframes particle-fade {
+            0% { transform: translate(0, 0); opacity: 1; filter: blur(0); }
+            100% { transform: translate(var(--tx), var(--ty)); opacity: 0; filter: blur(5px); }
+        }
+        
+        @keyframes comboFloat {
+            0% { transform: translateY(0) scale(0.5); opacity: 1; }
+            100% { transform: translateY(-150px) scale(1.5); opacity: 0; }
+        }
+        
+        @keyframes floatContainer {
+            0%, 100% { transform: translateY(0) rotateX(0deg) rotateY(0deg); }
+            25% { transform: translateY(-10px) rotateX(2deg) rotateY(2deg); }
+            50% { transform: translateY(-5px) rotateX(-2deg) rotateY(-1deg); }
+            75% { transform: translateY(5px) rotateX(1deg) rotateY(2deg); }
+        }
+        
+        .sound-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .sound-btn {
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .subtitle { font-size: 1.2rem; }
+            .stat { font-size: 1.2rem; min-width: 120px; }
+            .stat-value { font-size: 1.8rem; }
+            .controls { flex-direction: column; align-items: center; }
+            button { width: 90%; max-width: 300px; }
+            .container { padding: 20px; margin: 20px; }
+            #muteBtn { top: 15px; right: 15px; width: 50px; height: 50px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-water"></i> 泡泡解压乐园</h1>
+        <p class="subtitle">点击泡泡释放压力，享受轻松时刻</p>
+        
+        <div class="stats">
+            <div class="stat">
+                <span>已点击泡泡</span>
+                <span id="clickCount" class="stat-value">0</span>
+            </div>
+            <div class="stat">
+                <span>当前泡泡数</span>
+                <span id="bubbleCount" class="stat-value">0</span>
+            </div>
+            <div class="stat">
+                <span>连击次数</span>
+                <span id="comboCount" class="stat-value">0</span>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <p><i class="fas fa-hand-pointer"></i> 点击屏幕任意位置创建泡泡，然后点击泡泡将其戳破！</p>
+            <p><i class="fas fa-bolt"></i> 连续快速戳破泡泡可获得连击奖励和特殊音效！</p>
+            <p><i class="fas fa-music"></i> 享受舒缓的音乐和丰富的音效，放松身心...</p>
+        </div>
+        
+        <div class="controls">
+            <button id="autoBubbleBtn"><i class="fas fa-magic"></i> 自动生成泡泡</button>
+            <button id="clearBubblesBtn"><i class="fas fa-trash-alt"></i> 清除所有泡泡</button>
+            <button id="specialBubbleBtn"><i class="fas fa-star"></i> 生成特殊泡泡</button>
+        </div>
+        
+        <div class="sound-controls">
+            <button class="sound-btn" id="bgmDown"><i class="fas fa-volume-down"></i></button>
+            <button class="sound-btn" id="bgmUp"><i class="fas fa-volume-up"></i></button>
+            <button class="sound-btn" id="sfxDown"><i class="fas fa-volume-mute"></i></button>
+            <button class="sound-btn" id="sfxUp"><i class="fas fa-volume"></i></button>
+        </div>
+    </div>
+    
+    <button id="muteBtn">🔊</button>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            clickCount: 0,
+            bubbleCount: 0,
+            combo: 0,
+            lastPopTime: 0,
+            autoBubbleInterval: null,
+            isMuted: false,
+            bgmVolume: 0.5,
+            sfxVolume: 1.0,
+            specialBubble: null
+        };
+        
+        // 音频元素
+        const audioElements = {
+            backgroundMusic: new Audio("data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"),
+            pop: new Audio('21.mp3'), // 泡泡破裂音效改为本地的21.mp3
+            create: [
+                new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"),
+                new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV")
+            ],
+            special: [
+                new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"),
+                new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV")
+            ],
+            combo: [
+                new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"),
+                new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"),
+                new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV")
+            ],
+            clear: new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV")
+        };
+        
+        // DOM 元素
+        const elements = {
+            clickCount: document.getElementById('clickCount'),
+            bubbleCount: document.getElementById('bubbleCount'),
+            comboCount: document.getElementById('comboCount'),
+            autoBubbleBtn: document.getElementById('autoBubbleBtn'),
+            clearBubblesBtn: document.getElementById('clearBubblesBtn'),
+            specialBubbleBtn: document.getElementById('specialBubbleBtn'),
+            muteBtn: document.getElementById('muteBtn'),
+            bgmDown: document.getElementById('bgmDown'),
+            bgmUp: document.getElementById('bgmUp'),
+            sfxDown: document.getElementById('sfxDown'),
+            sfxUp: document.getElementById('sfxUp'),
+            container: document.querySelector('.container') // 获取容器元素
+        };
+        
+        // 初始化游戏
+        function initGame() {
+            // 设置初始音量
+            audioElements.backgroundMusic.volume = gameState.bgmVolume;
+            audioElements.backgroundMusic.loop = true;
+            Object.values(audioElements).forEach(arr => {
+                if (Array.isArray(arr)) {
+                    arr.forEach(audio => audio.volume = gameState.sfxVolume);
+                } else {
+                    arr.volume = gameState.sfxVolume;
+                }
+            });
+            
+            updateStats();
+            
+            // 添加事件监听器
+            document.body.addEventListener('click', createBubble);
+            elements.autoBubbleBtn.addEventListener('click', toggleAutoBubbles);
+            elements.clearBubblesBtn.addEventListener('click', clearAllBubbles);
+            elements.specialBubbleBtn.addEventListener('click', createSpecialBubble);
+            elements.muteBtn.addEventListener('click', toggleMute);
+            elements.bgmDown.addEventListener('click', () => adjustVolume('bgm', -0.1));
+            elements.bgmUp.addEventListener('click', () => adjustVolume('bgm', 0.1));
+            elements.sfxDown.addEventListener('click', () => adjustVolume('sfx', -0.1));
+            elements.sfxUp.addEventListener('click', () => adjustVolume('sfx', 0.1));
+            
+            // 尝试播放背景音乐
+            document.body.addEventListener('click', playBackgroundMusic, { once: true });
+            document.body.addEventListener('click', hideContainer, { once: true }); // 点击开始时隐藏容器
+            
+            // 创建初始泡泡
+            for (let i = 0; i < 8; i++) {
+                createRandomBubble();
+            }
+        }
+        
+        // 隐藏容器
+        function hideContainer() {
+            elements.container.style.display = 'none';
+        }
+        
+        // 播放背景音乐
+        function playBackgroundMusic() {
+            audioElements.backgroundMusic.play().catch(e => console.log("需要用户交互才能播放音频"));
+        }
+        
+        // 创建泡泡
+        function createBubble(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            
+            const size = Math.random() * 80 + 40;
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            
+            const x = e.clientX - size/2;
+            const y = e.clientY - size/2;
+            
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${x}px`;
+            bubble.style.top = `${y}px`;
+            bubble.style.animationDelay = `${Math.random() * 5}s`;
+            
+            // 随机泡泡颜色
+            const hue = Math.random() * 360;
+            bubble.style.background = `radial-gradient(circle at 30% 30%, hsl(${hue}, 100%, 90%), hsl(${hue}, 80%, 70%))`;
+            bubble.style.boxShadow = `0 5px 25px hsla(${hue}, 100%, 70%, 0.5)`;
+            
+            bubble.addEventListener('click', function(event) {
+                event.stopPropagation();
+                popBubble(bubble);
+            });
+            
+            document.body.appendChild(bubble);
+            gameState.bubbleCount++;
+            updateStats();
+            
+            // 播放创建泡泡音效
+            playSound('create');
+        }
+        
+        // 创建随机位置的泡泡
+        function createRandomBubble() {
+            const size = Math.random() * 80 + 40;
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            
+            const maxX = window.innerWidth - size;
+            const maxY = window.innerHeight - size;
+            const x = Math.random() * maxX;
+            const y = Math.random() * maxY;
+            
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${x}px`;
+            bubble.style.top = `${y}px`;
+            bubble.style.animationDelay = `${Math.random() * 5}s`;
+            
+            // 随机泡泡颜色
+            const hue = Math.random() * 360;
+            bubble.style.background = `radial-gradient(circle at 30% 30%, hsl(${hue}, 100%, 90%), hsl(${hue}, 80%, 70%))`;
+            bubble.style.boxShadow = `0 5px 25px hsla(${hue}, 100%, 70%, 0.5)`;
+            
+            bubble.addEventListener('click', function(event) {
+                event.stopPropagation();
+                popBubble(bubble);
+            });
+            
+            document.body.appendChild(bubble);
+            gameState.bubbleCount++;
+            updateStats();
+            
+            // 播放创建泡泡音效
+            playSound('create');
+        }
+        
+        // 创建特殊泡泡
+        function createSpecialBubble() {
+            if (gameState.specialBubble) return;
+            
+            const size = 120;
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.id = 'specialBubble';
+            
+            const maxX = window.innerWidth - size;
+            const maxY = window.innerHeight - size;
+            const x = Math.random() * maxX;
+            const y = Math.random() * maxY;
+            
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${x}px`;
+            bubble.style.top = `${y}px`;
+            bubble.style.animation = 'float 4s infinite ease-in-out';
+            
+            // 特殊泡泡样式
+            bubble.style.background = `radial-gradient(circle at 30% 30%, #ffeb3b, #ff9800)`;
+            bubble.style.boxShadow = `0 0 40px #ff9800, 0 0 80px #ffeb3b`;
+            bubble.style.zIndex = '20';
+            
+            bubble.addEventListener('click', function(event) {
+                event.stopPropagation();
+                popSpecialBubble(bubble);
+            });
+            
+            document.body.appendChild(bubble);
+            gameState.bubbleCount++;
+            gameState.specialBubble = bubble;
+            updateStats();
+            
+            // 播放特殊音效
+            playSound('special');
+        }
+        
+        // 戳破普通泡泡
+        function popBubble(bubble) {
+            gameState.clickCount++;
+            
+            // 计算连击
+            const now = Date.now();
+            if (now - gameState.lastPopTime < 500) {
+                gameState.combo++;
+                if (gameState.combo % 5 === 0) {
+                    showComboEffect();
+                    playSound('combo', 1); // 播放特定的连击音效
+                }
+            } else {
+                gameState.combo = 1;
+            }
+            gameState.lastPopTime = now;
+            
+            // 播放泡泡破裂音效
+            playSound('pop');
+            
+            // 创建粒子效果
+            createParticles(bubble);
+            
+            // 移除泡泡
+            bubble.classList.add('pop');
+            setTimeout(() => {
+                bubble.remove();
+                gameState.bubbleCount--;
+                updateStats();
+            }, 400);
+        }
+        
+        // 戳破特殊泡泡
+        function popSpecialBubble(bubble) {
+            gameState.clickCount += 5;
+            gameState.combo += 3;
+            
+            // 播放特殊音效
+            playSound('special', 1);
+            
+            // 创建增强粒子效果
+            createSpecialParticles(bubble);
+            
+            // 显示连击效果
+            showComboEffect("BONUS!");
+            
+            // 移除泡泡
+            bubble.classList.add('pop');
+            setTimeout(() => {
+                bubble.remove();
+                gameState.bubbleCount--;
+                gameState.specialBubble = null;
+                updateStats();
+            }, 400);
+        }
+        
+        // 显示连击效果
+        function showComboEffect(text) {
+            if (!text) {
+                text = `${gameState.combo} COMBO!`;
+            }
+            
+            const comboDisplay = document.createElement('div');
+            comboDisplay.className = 'combo-display';
+            comboDisplay.textContent = text;
+            
+            const x = window.innerWidth / 2;
+            const y = window.innerHeight / 2;
+            comboDisplay.style.left = `${x}px`;
+            comboDisplay.style.top = `${y}px`;
+            comboDisplay.style.transform = 'translate(-50%, -50%)';
+            
+            document.body.appendChild(comboDisplay);
+            
+            setTimeout(() => {
+                comboDisplay.remove();
+            }, 1500);
+        }
+        
+        // 创建粒子效果
+        function createParticles(bubble) {
+            const rect = bubble.getBoundingClientRect();
+            const centerX = rect.left + rect.width/2;
+            const centerY = rect.top + rect.height/2;
+            const hue = Math.random() * 360;
+            
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const size = Math.random() * 10 + 5;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${centerX}px`;
+                particle.style.top = `${centerY}px`;
+                particle.style.backgroundColor = `hsl(${hue}, 100%, 80%)`;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 100 + 50;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--tx', `${tx}px`);
+                particle.style.setProperty('--ty', `${ty}px`);
+                
+                document.body.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 1200);
+            }
+        }
+        
+        // 创建特殊粒子效果
+        function createSpecialParticles(bubble) {
+            const rect = bubble.getBoundingClientRect();
+            const centerX = rect.left + rect.width/2;
+            const centerY = rect.top + rect.height/2;
+            
+            for (let i = 0; i < 100; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const size = Math.random() * 15 + 5;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${centerX}px`;
+                particle.style.top = `${centerY}px`;
+                particle.style.backgroundColor = `hsl(${Math.random() * 60 + 40}, 100%, 60%)`;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 200 + 100;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--tx', `${tx}px`);
+                particle.style.setProperty('--ty', `${ty}px`);
+                
+                document.body.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 1200);
+            }
+        }
+        
+        // 播放音效
+        function playSound(type, index) {
+            if (gameState.isMuted) return;
+            
+            if (Array.isArray(audioElements[type])) {
+                const idx = index !== undefined ? index : Math.floor(Math.random() * audioElements[type].length);
+                const sound = audioElements[type][idx];
+                sound.currentTime = 0;
+                sound.volume = gameState.sfxVolume;
+                sound.play().catch(e => console.log("音频播放失败"));
+            } else {
+                const sound = audioElements[type];
+                sound.currentTime = 0;
+                sound.volume = gameState.sfxVolume;
+                sound.play().catch(e => console.log("音频播放失败"));
+            }
+        }
+        
+        // 切换自动生成泡泡
+        function toggleAutoBubbles() {
+            if (gameState.autoBubbleInterval) {
+                clearInterval(gameState.autoBubbleInterval);
+                gameState.autoBubbleInterval = null;
+                elements.autoBubbleBtn.innerHTML = '<i class="fas fa-magic"></i> 自动生成泡泡';
+            } else {
+                gameState.autoBubbleInterval = setInterval(() => {
+                    if (gameState.bubbleCount < 30) {
+                        createRandomBubble();
+                    }
+                }, 1000);
+                elements.autoBubbleBtn.innerHTML = '<i class="fas fa-stop"></i> 停止自动生成';
+            }
+        }
+        
+        // 清除所有泡泡
+        function clearAllBubbles() {
+            if (gameState.bubbleCount === 0) return;
+            
+            document.querySelectorAll('.bubble').forEach(bubble => {
+                bubble.remove();
+            });
+            
+            gameState.bubbleCount = 0;
+            gameState.specialBubble = null;
+            updateStats();
+            
+            // 播放清除音效
+            playSound('clear');
+        }
+        
+        // 切换静音
+        function toggleMute() {
+            gameState.isMuted = !gameState.isMuted;
+            audioElements.backgroundMusic.muted = gameState.isMuted;
+            elements.muteBtn.textContent = gameState.isMuted ? "🔇" : "🔊";
+        }
+        
+        // 调整音量
+        function adjustVolume(type, change) {
+            if (type === 'bgm') {
+                gameState.bgmVolume = Math.min(1, Math.max(0, gameState.bgmVolume + change));
+                audioElements.backgroundMusic.volume = gameState.bgmVolume;
+            } else if (type === 'sfx') {
+                gameState.sfxVolume = Math.min(1, Math.max(0, gameState.sfxVolume + change));
+            }
+        }
+        
+        // 更新统计显示
+        function updateStats() {
+            elements.clickCount.textContent = gameState.clickCount;
+            elements.bubbleCount.textContent = gameState.bubbleCount;
+            elements.comboCount.textContent = gameState.combo;
+            
+            // 连击数颜色效果
+            if (gameState.combo >= 10) {
+                elements.comboCount.style.color = "#f44336";
+                elements.comboCount.style.textShadow = "0 0 15px #f44336";
+            } else if (gameState.combo >= 5) {
+                elements.comboCount.style.color = "#ff9800";
+                elements.comboCount.style.textShadow = "0 0 10px #ff9800";
+            } else {
+                elements.comboCount.style.color = "#ffeb3b";
+                elements.comboCount.style.textShadow = "0 0 5px #ffeb3b";
+            }
+        }
+        
+        // 页面加载完成后初始化游戏
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
