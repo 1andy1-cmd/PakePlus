@@ -1,32 +1,257 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
-
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
-            <form class="row" id="greet-form">
-                <input id="inputValue" placeholder="Enter a something..." />
-            </form>
-            <div class="resultBox">
-                <span>result: </span>
-                <span id="result"></span>
-            </div>
-            <div class="invokeBox">
-                <button id="openUrl">open_url_browser</button>
-                <button id="openUrlNew">open_url_new</button>
-                <button id="runCommand">run_command</button>
-                <button id="downloadFile">download_file</button>
-                <button id="getExeDir">get_exe_dir</button>
-                <button id="getEnvVar">get_env_var</button>
-                <button id="findPort">find_port</button>
-            </div>
-        </main>
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> <a href="1112/index.html" class="button" style="animation-delay: 0.1s">Andy视频工作室x星空软件</a></title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Arial', sans-serif;
+            color: white;
+        }
+        
+        #stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+        }
+        
+        .title {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 0;
+            background: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            margin: 5px 0 0 0;
+            color: #aaa;
+        }
+        
+        .buttons-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            z-index: 10;
+        }
+        
+        .button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            animation: pulse 4s infinite;
+        }
+        
+        .button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+        
+        .button::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0) 45%,
+                rgba(255, 255, 255, 0.5) 50%,
+                rgba(255, 255, 255, 0) 55%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(30deg);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            }
+            to {
+                text-shadow: 0 0 20px rgba(255,255,255,0.8), 0 0 30px #ff00ff, 0 0 40px #00ffff;
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(255, 0, 255, 0.8);
+            }
+            100% {
+                box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            }
+        }
+        
+        @keyframes shine {
+            from {
+                left: -50%;
+                top: -50%;
+            }
+            to {
+                left: 150%;
+                top: 150%;
+            }
+        }
+        
+        .comet {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.8);
+            animation: comet 10s linear infinite;
+            opacity: 0;
+            z-index: 1;
+        }
+        
+        @keyframes comet {
+            0% {
+                transform: translateX(0) translateY(0);
+                opacity: 1;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(1000px) translateY(300px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="stars"></div>
+    
+    <div class="header">
+        <h1 class="title">Andy视频工作室× 星空软件</h1>
+        <p class="subtitle">创意无限 · 星空相伴</p> 
+        <a href="1112/index.html" class="button" style="animation-delay: 0.1s">Andy视频工作室</a>
+    </div>
+    
+    <div class="buttons-container">
+        <a href="24/index.html" class="button" style="animation-delay: 0.1s">24点游戏</a>
+        <a href="wscl/index.html" class="button" style="animation-delay: 0.2s">网上冲浪</a>
+        <a href="cyjl/index.html" class="button" style="animation-delay: 0.3s">成语接龙游戏</a>
+        <a href="dz/index.html" class="button" style="animation-delay: 0.4s">星空打字</a>
+        <a href="fxmn/index.html" class="button" style="animation-delay: 0.5s">飞行模拟游戏</a>
+        
+        <a href="fxq/index.html" class="button" style="animation-delay: 0.6s">飞行棋游戏</a>
+        <a href="AndyStudio/index.html" class="button" style="animation-delay: 0.7s">消消乐</a>
+        <a href="pkp/index.html" class="button" style="animation-delay: 0.8s">扑克牌游戏</a>
+        <a href="shudu/index.html" class="button" style="animation-delay: 0.9s">数独游戏</a>
+        <a href="xiaqi/index.html" class="button" style="animation-delay: 1.0s">下棋游戏</a>
+        
+        <a href="tkdz/index.html" class="button" style="animation-delay: 1.1s">太空大战</a>
+        <a href="pp/index.html" class="button" style="animation-delay: 1.2s">泡泡游戏</a>
+        <a href="xkl/index.html" class="button" style="animation-delay: 1.3s">小恐龙</a>
+        <a href="dycg/index.html" class="button" style="animation-delay: 1.4s">地狱闯关</a>
+        <a href="jq/index.html" class="button" style="animation-delay: 1.5s">军棋</a>
+        
+        <a href="jimu/index.html" class="button" style="animation-delay: 1.6s">积木切切乐</a>
+        <a href="mf/index.html" class="button" style="animation-delay: 1.7s">魔方</a>
+        <a href="sdlr/index.html" class="button" style="animation-delay: 1.8s">圣诞老人过台阶</a>
+        <a href="ybxn/index.html" class="button" style="animation-delay: 1.9s">压扁小鸟</a>
+        <a href="2020/index.html" class="button" style="animation-delay: 2.0s">令人发疯的2020</a>
+    </div>
+    
+    <script>
+        // 创建星空背景
+        function createStars() {
+            const stars = document.getElementById('stars');
+            const count = 200;
+            
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.style.position = 'absolute';
+                star.style.width = Math.random() * 3 + 'px';
+                star.style.height = star.style.width;
+                star.style.backgroundColor = 'white';
+                star.style.borderRadius = '50%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.opacity = Math.random();
+                star.style.animation = `twinkle ${Math.random() * 5 + 3}s infinite`;
+                stars.appendChild(star);
+                
+                // 随机添加一些闪烁动画
+                if (Math.random() > 0.7) {
+                    star.style.animation = `twinkle ${Math.random() * 3 + 1}s infinite`;
+                }
+            }
+            
+            // 偶尔添加彗星
+            setInterval(() => {
+                const comet = document.createElement('div');
+                comet.className = 'comet';
+                comet.style.left = Math.random() * 100 + 'px';
+                comet.style.top = Math.random() * 100 + 'px';
+                comet.style.animationDelay = Math.random() * 2 + 's';
+                stars.appendChild(comet);
+                
+                // 移除彗星元素以避免内存泄漏
+                setTimeout(() => {
+                    comet.remove();
+                }, 10000);
+            }, 3000);
+        }
+        
+        // 添加星星闪烁动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes twinkle {
+                0% { opacity: 0.2; }
+                50% { opacity: 1; }
+                100% { opacity: 0.2; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // 页面加载完成后创建星星
+        window.onload = createStars;
+    </script>
+</body>
 </html>
